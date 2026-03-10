@@ -22,28 +22,43 @@ def fetch_acsc_feeds() -> list[dict]:
         ("ACSC Threats", "acsc_threats_rss"),
     ]:
         feed_url = SOURCES[feed_key]
+        feed = None
         try:
+            # Primary: use fetch_url (respects our retry/timeout logic)
             resp = fetch_url(feed_url)
-            if not resp:
-                continue
-            feed = feedparser.parse(resp.content)
-            for entry in feed.entries[:50]:
-                published = ""
-                if hasattr(entry, "published"):
-                    published = entry.published
-                elif hasattr(entry, "updated"):
-                    published = entry.updated
-
-                entries.append({
-                    "title": entry.get("title", "Untitled"),
-                    "link": entry.get("link", ""),
-                    "published": published,
-                    "summary": truncate(entry.get("summary", ""), 300),
-                    "source": feed_name,
-                })
-            logger.info(f"  {feed_name}: {len(feed.entries)} entries")
+            if resp:
+                feed = feedparser.parse(resp.content)
         except Exception as e:
-            logger.error(f"Error fetching {feed_name}: {e}")
+            logger.warning(f"  fetch_url failed for {feed_name}: {e}")
+
+        # Fallback: let feedparser fetch directly (its own HTTP client)
+        if feed is None or not feed.entries:
+            try:
+                logger.info(f"  Trying feedparser direct fetch for {feed_name}...")
+                feed = feedparser.parse(feed_url)
+            except Exception as e:
+                logger.error(f"  feedparser direct fetch also failed for {feed_name}: {e}")
+                continue
+
+        if not feed or not feed.entries:
+            logger.warning(f"  {feed_name}: no entries returned")
+            continue
+
+        for entry in feed.entries[:50]:
+            published = ""
+            if hasattr(entry, "published"):
+                published = entry.published
+            elif hasattr(entry, "updated"):
+                published = entry.updated
+
+            entries.append({
+                "title": entry.get("title", "Untitled"),
+                "link": entry.get("link", ""),
+                "published": published,
+                "summary": truncate(entry.get("summary", ""), 300),
+                "source": feed_name,
+            })
+        logger.info(f"  {feed_name}: {len(feed.entries)} entries")
 
     return entries
 

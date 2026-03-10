@@ -27,7 +27,9 @@ def fetch_url(url: str, headers: dict = None, params: dict = None,
 
     # Use longer timeout for slow government sites
     if timeout is None:
-        if ".gov.au" in url or ".gov." in url:
+        if ".gov.au" in url:
+            timeout = 180
+        elif ".gov." in url:
             timeout = 90
         else:
             timeout = REQUEST_TIMEOUT
