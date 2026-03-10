@@ -650,9 +650,9 @@ def generate_apac_threats_page():
 
     content = f"""# :material-account-alert: APAC Threat Actors
 
-**Last updated:** {_build_timestamp()}
+**Last updated:** {_build_timestamp()} | **Source: [MITRE ATT&CK](https://attack.mitre.org/groups/)**
 
-State-sponsored and advanced persistent threat (APT) groups with known activity targeting Australia, the Indo-Pacific, and Five Eyes nations.
+State-sponsored and advanced persistent threat (APT) groups with known activity targeting Australia, the Indo-Pacific, and Five Eyes nations. Data is automatically refreshed from MITRE ATT&CK on each build.
 
 !!! warning "Classification Note"
     Attribution of cyber operations to specific nation-states is inherently complex. The attributions listed here reflect publicly available reporting from government agencies and reputable threat intelligence firms.
@@ -661,27 +661,52 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
     # Group by attribution country
     by_country = {}
     for a in actors:
-        country = a["attribution"].split("/")[0].split("(")[0].strip()
+        country = a.get("attribution", "Unknown").split("/")[0].split("(")[0].strip()
         by_country.setdefault(country, []).append(a)
 
     for country, group in by_country.items():
         content += f"## {country}\n\n"
         for a in group:
-            mitre_link = f" | [MITRE ATT&CK](https://attack.mitre.org/groups/{a['mitre_id']}/)" if a.get("mitre_id") else ""
+            mitre_id = a.get("mitre_id", "")
+            mitre_link = ""
+            if mitre_id:
+                mitre_link = f"[{mitre_id}](https://attack.mitre.org/groups/{mitre_id}/)"
+            elif a.get("mitre_url"):
+                mitre_link = f"[MITRE ATT&CK]({a['mitre_url']})"
+
             status = ":material-alert-circle:{{ style='color: #ff5252' }} **Active**" if a.get("active") else "Inactive"
+
+            aliases = a.get("aliases", [])
+            alias_str = ", ".join(aliases[:4]) if aliases else "None listed"
+
+            tech_count = a.get("technique_count", 0)
+            tech_str = f"{tech_count} known techniques" if tech_count else "N/A"
 
             content += f"""### {a['name']}
 
 | | |
 |---|---|
-| **Attribution** | {a['attribution']} |
+| **Attribution** | {a.get('attribution', 'Unknown')} |
+| **Also known as** | {alias_str} |
 | **Status** | {status} |
-| **Primary Targets** | {a['targets']} |
-| **Australia Relevance** | {a['relevance']} |
-| **References** | {mitre_link} |
+| **Primary Targets** | {a.get('targets', 'Multiple sectors')} |
+| **ATT&CK Techniques** | {tech_str} |
+| **Australia Relevance** | {a.get('relevance', '')} |
+| **MITRE Reference** | {mitre_link} |
 
----
+"""
+            # Add truncated description if available
+            desc = a.get("description", "")
+            if desc:
+                clean_desc = desc.replace("|", " ").replace("\n", " ")
+                content += f"> {clean_desc}\n\n"
 
+            content += "---\n\n"
+
+    content += f"""
+**Total APAC-relevant groups tracked:** {len(actors)}
+
+*Data sourced from [MITRE ATT&CK Enterprise](https://attack.mitre.org/) and enriched with Australian-specific context.*
 """
 
     write_page("geopolitical/apac-threats.md", content)
