@@ -1,0 +1,116 @@
+{
+  "fetched_at": "2026-03-10T14:24:46.639146+00:00",
+  "total_count": 15,
+  "by_source": {
+    "ACSC Alerts": 5,
+    "AusCERT": 5,
+    "CISA": 5
+  },
+  "advisories": [
+    {
+      "title": "Critical vulnerability in Fortinet FortiOS",
+      "link": "https://www.cyber.gov.au/",
+      "published": "2026-03-08T10:00:00Z",
+      "summary": "ASD is aware of active exploitation of a critical vulnerability in Fortinet FortiOS.",
+      "source": "ACSC Alerts"
+    },
+    {
+      "title": "SonicWall SMA appliances actively exploited",
+      "link": "https://www.cyber.gov.au/",
+      "published": "2026-03-06T08:00:00Z",
+      "summary": "Multiple vulnerabilities in SonicWall SMA 100 series appliances are being actively exploited.",
+      "source": "ACSC Alerts"
+    },
+    {
+      "title": "Essential Eight update: MFA requirements strengthened",
+      "link": "https://www.cyber.gov.au/",
+      "published": "2026-03-04T09:00:00Z",
+      "summary": "Updated guidance on multi-factor authentication requirements under the Essential Eight.",
+      "source": "ACSC Alerts"
+    },
+    {
+      "title": "Advisory on PRC-linked cyber actors targeting telcos",
+      "link": "https://www.cyber.gov.au/",
+      "published": "2026-03-01T11:00:00Z",
+      "summary": "Joint advisory on PRC-affiliated threat actors targeting telecommunications providers.",
+      "source": "ACSC Alerts"
+    },
+    {
+      "title": "Ivanti Connect Secure exploitation guidance",
+      "link": "https://www.cyber.gov.au/",
+      "published": "2026-02-28T14:00:00Z",
+      "summary": "Guidance on detecting and mitigating exploitation of Ivanti Connect Secure appliances.",
+      "source": "ACSC Alerts"
+    },
+    {
+      "title": "ESB-2026.0312 - Apache Tomcat RCE vulnerability",
+      "link": "https://www.auscert.org.au/",
+      "published": "2026-03-09T06:00:00Z",
+      "summary": "Critical remote code execution vulnerability in Apache Tomcat (CVE-2026-XXXX).",
+      "source": "AusCERT"
+    },
+    {
+      "title": "ESB-2026.0298 - Microsoft Exchange Server updates",
+      "link": "https://www.auscert.org.au/",
+      "published": "2026-03-07T05:00:00Z",
+      "summary": "Security updates addressing multiple vulnerabilities in Microsoft Exchange Server.",
+      "source": "AusCERT"
+    },
+    {
+      "title": "ESB-2026.0285 - Cisco IOS XE privilege escalation",
+      "link": "https://www.auscert.org.au/",
+      "published": "2026-03-05T07:00:00Z",
+      "summary": "Privilege escalation vulnerability in Cisco IOS XE web UI.",
+      "source": "AusCERT"
+    },
+    {
+      "title": "ESB-2026.0271 - VMware vCenter Server critical patch",
+      "link": "https://www.auscert.org.au/",
+      "published": "2026-03-03T04:00:00Z",
+      "summary": "Critical authentication bypass in VMware vCenter Server.",
+      "source": "AusCERT"
+    },
+    {
+      "title": "ESB-2026.0258 - Palo Alto PAN-OS command injection",
+      "link": "https://www.auscert.org.au/",
+      "published": "2026-03-01T06:00:00Z",
+      "summary": "Command injection vulnerability in Palo Alto Networks PAN-OS GlobalProtect.",
+      "source": "AusCERT"
+    },
+    {
+      "title": "CISA Adds Three Known Exploited Vulnerabilities to Catalog",
+      "link": "https://www.cisa.gov/",
+      "published": "2026-03-09T15:00:00Z",
+      "summary": "CISA has added three new vulnerabilities to its Known Exploited Vulnerabilities Catalog.",
+      "source": "CISA"
+    },
+    {
+      "title": "Threat Actors Exploit Multiple ICS/SCADA Vulnerabilities",
+      "link": "https://www.cisa.gov/",
+      "published": "2026-03-07T12:00:00Z",
+      "summary": "Multiple threat actors exploiting vulnerabilities in industrial control systems.",
+      "source": "CISA"
+    },
+    {
+      "title": "AA26-065A: PRC State-Sponsored Cyber Actors Target Critical Infrastructure",
+      "link": "https://www.cisa.gov/",
+      "published": "2026-03-05T16:00:00Z",
+      "summary": "Joint advisory on PRC-affiliated actors pre-positioning for disruptive operations.",
+      "source": "CISA"
+    },
+    {
+      "title": "Ransomware Advisory: Play Group Targeting Healthcare",
+      "link": "https://www.cisa.gov/",
+      "published": "2026-03-03T14:00:00Z",
+      "summary": "Advisory on Play ransomware group activities targeting healthcare sector.",
+      "source": "CISA"
+    },
+    {
+      "title": "Updated Best Practices for Securing Cloud Environments",
+      "link": "https://www.cisa.gov/",
+      "published": "2026-03-01T13:00:00Z",
+      "summary": "Updated guidance on securing cloud environments against common attack patterns.",
+      "source": "CISA"
+    }
+  ]
+}

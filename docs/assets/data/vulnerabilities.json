@@ -1,0 +1,155 @@
+{
+  "fetched_at": "2026-03-10T14:24:46.655341+00:00",
+  "kev": {
+    "total_kev": 1247,
+    "recent_30d": 18,
+    "recent_entries": [
+      {
+        "cveID": "CVE-2026-1234",
+        "vendorProject": "Fortinet",
+        "product": "FortiOS",
+        "dateAdded": "2026-03-08",
+        "dueDate": "2026-03-29"
+      },
+      {
+        "cveID": "CVE-2026-0987",
+        "vendorProject": "SonicWall",
+        "product": "SMA 100",
+        "dateAdded": "2026-03-06",
+        "dueDate": "2026-03-27"
+      },
+      {
+        "cveID": "CVE-2025-9876",
+        "vendorProject": "Ivanti",
+        "product": "Connect Secure",
+        "dateAdded": "2026-03-04",
+        "dueDate": "2026-03-25"
+      },
+      {
+        "cveID": "CVE-2026-0555",
+        "vendorProject": "Apache",
+        "product": "Tomcat",
+        "dateAdded": "2026-03-02",
+        "dueDate": "2026-03-23"
+      },
+      {
+        "cveID": "CVE-2025-8765",
+        "vendorProject": "Cisco",
+        "product": "IOS XE",
+        "dateAdded": "2026-02-28",
+        "dueDate": "2026-03-21"
+      }
+    ],
+    "top_vendors": [
+      {
+        "vendor": "Microsoft",
+        "count": 312
+      },
+      {
+        "vendor": "Apple",
+        "count": 89
+      },
+      {
+        "vendor": "Google",
+        "count": 78
+      },
+      {
+        "vendor": "Cisco",
+        "count": 67
+      },
+      {
+        "vendor": "Adobe",
+        "count": 65
+      },
+      {
+        "vendor": "Fortinet",
+        "count": 42
+      },
+      {
+        "vendor": "Ivanti",
+        "count": 38
+      },
+      {
+        "vendor": "VMware",
+        "count": 35
+      },
+      {
+        "vendor": "Oracle",
+        "count": 31
+      },
+      {
+        "vendor": "Palo Alto Networks",
+        "count": 28
+      },
+      {
+        "vendor": "Apache",
+        "count": 26
+      },
+      {
+        "vendor": "Citrix",
+        "count": 24
+      },
+      {
+        "vendor": "SonicWall",
+        "count": 19
+      },
+      {
+        "vendor": "Samsung",
+        "count": 17
+      },
+      {
+        "vendor": "D-Link",
+        "count": 15
+      }
+    ],
+    "overdue_count": 42
+  },
+  "recent_cves": {
+    "total": 847,
+    "severity_distribution": {
+      "CRITICAL": 43,
+      "HIGH": 218,
+      "MEDIUM": 389,
+      "LOW": 112,
+      "UNKNOWN": 85
+    },
+    "critical": [
+      {
+        "id": "CVE-2026-1234",
+        "published": "2026-03-08",
+        "description": "Heap-based buffer overflow in Fortinet FortiOS SSL-VPN allows remote code execution via crafted HTTP requests.",
+        "cvss_score": 9.8,
+        "cvss_severity": "CRITICAL"
+      },
+      {
+        "id": "CVE-2026-0987",
+        "published": "2026-03-06",
+        "description": "Authentication bypass in SonicWall SMA 100 series allows unauthenticated attackers to gain admin access.",
+        "cvss_score": 9.8,
+        "cvss_severity": "CRITICAL"
+      },
+      {
+        "id": "CVE-2026-0555",
+        "published": "2026-03-02",
+        "description": "Remote code execution in Apache Tomcat via deserialization of untrusted data in session persistence.",
+        "cvss_score": 9.1,
+        "cvss_severity": "CRITICAL"
+      },
+      {
+        "id": "CVE-2026-0888",
+        "published": "2026-03-01",
+        "description": "SQL injection in WordPress plugin allowing unauthenticated database access.",
+        "cvss_score": 9.8,
+        "cvss_severity": "CRITICAL"
+      },
+      {
+        "id": "CVE-2025-9876",
+        "published": "2026-02-28",
+        "description": "Server-side request forgery in Ivanti Connect Secure allows authenticated admin to access internal services.",
+        "cvss_score": 9.0,
+        "cvss_severity": "CRITICAL"
+      }
+    ],
+    "all": []
+  }
+}

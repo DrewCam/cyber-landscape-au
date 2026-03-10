@@ -1,0 +1,106 @@
+site_name: Australian Cyber Threat Landscape
+site_description: Automated cybersecurity threat landscape dashboard aggregating Australian-relevant intelligence sources
+site_url: https://drewcam.github.io/cyber-landscape-au/
+repo_url: https://github.com/DrewCam/cyber-landscape-au
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/shield-alert
+
+extra_css:
+  - assets/css/custom.css
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js
+  - https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js
+  - assets/js/dashboard.js
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+nav:
+  - Dashboard: index.md
+  - Threat Intelligence:
+    - threats/index.md
+    - ACSC Advisories: threats/advisories.md
+    - Vulnerabilities & KEV: threats/vulnerabilities.md
+    - Malware & Threat Feeds: threats/malware.md
+  - OSINT:
+    - osint/index.md
+    - Internet Exposure: osint/exposure.md
+    - Indicators of Compromise: osint/iocs.md
+  - Geopolitical:
+    - geopolitical/index.md
+    - APAC Threat Actors: geopolitical/apac-threats.md
+    - Cyber Policy & Sanctions: geopolitical/policy.md
+  - Australian Compliance:
+    - compliance/index.md
+    - Essential Eight: compliance/essential-eight.md
+    - Notifiable Data Breaches: compliance/ndb-stats.md
+  - Data Sources: sources.md
+
+extra:
+  analytics:
+    provider: google
+    property: !ENV [GA_MEASUREMENT_ID, ""]
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/DrewCam/cyber-landscape-au
+  generator: false
+
+copyright: "Australian Cyber Threat Landscape | Auto-generated intelligence dashboard"

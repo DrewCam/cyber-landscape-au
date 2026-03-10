@@ -1,0 +1,138 @@
+/* Australian Cyber Threat Landscape - Custom Styles */
+
+:root {
+  --dashboard-accent: #00bfa5;
+  --dashboard-warning: #ff9800;
+  --dashboard-critical: #f44336;
+  --dashboard-info: #2196f3;
+  --dashboard-success: #4caf50;
+  --card-bg-dark: #1e1e2e;
+  --card-bg-light: #ffffff;
+}
+
+/* Dashboard meta info */
+.dashboard-meta {
+  text-align: center;
+  opacity: 0.7;
+  font-size: 0.85em;
+  margin-bottom: 1rem;
+}
+
+/* Grid card enhancements */
+.md-typeset .grid.cards > ul > li {
+  border-left: 3px solid var(--dashboard-accent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Chart containers */
+canvas {
+  max-width: 100%;
+  margin: 1rem 0;
+  border-radius: 8px;
+}
+
+/* Table styling */
+.md-typeset table:not([class]) {
+  font-size: 0.85em;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: rgba(0, 191, 165, 0.1);
+  font-weight: 600;
+}
+
+/* Active threat indicator */
+.active {
+  color: var(--dashboard-critical) !important;
+}
+
+/* Data sources footer */
+.data-sources-footer {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* Severity badges */
+.severity-critical {
+  background-color: var(--dashboard-critical);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.severity-high {
+  background-color: var(--dashboard-warning);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.severity-medium {
+  background-color: #ffc107;
+  color: #333;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.severity-low {
+  background-color: var(--dashboard-info);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+/* Pulse animation for active alerts */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .md-typeset table:not([class]) {
+    font-size: 0.75em;
+  }
+
+  canvas {
+    height: 200px !important;
+  }
+}
+
+/* Custom admonition for threat level */
+.md-typeset .admonition.threat-level,
+.md-typeset details.threat-level {
+  border-color: var(--dashboard-critical);
+}
+
+.md-typeset .threat-level > .admonition-title,
+.md-typeset .threat-level > summary {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* Timestamp styling */
+.md-typeset .last-updated {
+  font-style: italic;
+  opacity: 0.6;
+  font-size: 0.85em;
+}

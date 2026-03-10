@@ -1,0 +1,277 @@
+{
+  "fetched_at": "2026-03-10T14:24:46.688256+00:00",
+  "greynoise": {
+    "available": false,
+    "note": "Set GREYNOISE_API_KEY for live data"
+  },
+  "otx_analysis": {
+    "total_pulses": 48,
+    "top_tags": [
+      {
+        "tag": "malware",
+        "count": 32
+      },
+      {
+        "tag": "phishing",
+        "count": 24
+      },
+      {
+        "tag": "apt",
+        "count": 18
+      },
+      {
+        "tag": "ransomware",
+        "count": 16
+      },
+      {
+        "tag": "china",
+        "count": 14
+      },
+      {
+        "tag": "russia",
+        "count": 12
+      },
+      {
+        "tag": "rat",
+        "count": 11
+      },
+      {
+        "tag": "c2",
+        "count": 10
+      },
+      {
+        "tag": "infostealer",
+        "count": 9
+      },
+      {
+        "tag": "vulnerability",
+        "count": 8
+      }
+    ],
+    "targeted_countries": [
+      {
+        "country": "US",
+        "count": 28
+      },
+      {
+        "country": "CN",
+        "count": 15
+      },
+      {
+        "country": "DE",
+        "count": 12
+      },
+      {
+        "country": "GB",
+        "count": 11
+      },
+      {
+        "country": "AU",
+        "count": 9
+      },
+      {
+        "country": "JP",
+        "count": 8
+      },
+      {
+        "country": "FR",
+        "count": 7
+      },
+      {
+        "country": "IN",
+        "count": 6
+      },
+      {
+        "country": "KR",
+        "count": 5
+      },
+      {
+        "country": "BR",
+        "count": 4
+      }
+    ],
+    "adversaries": [
+      {
+        "name": "APT40",
+        "count": 4
+      },
+      {
+        "name": "Lazarus Group",
+        "count": 3
+      },
+      {
+        "name": "APT29",
+        "count": 3
+      },
+      {
+        "name": "Mustang Panda",
+        "count": 2
+      },
+      {
+        "name": "Kimsuky",
+        "count": 2
+      }
+    ],
+    "malware_families": [
+      {
+        "family": "AgentTesla",
+        "count": 8
+      },
+      {
+        "family": "Remcos",
+        "count": 6
+      },
+      {
+        "family": "Cobalt Strike",
+        "count": 5
+      },
+      {
+        "family": "AsyncRAT",
+        "count": 4
+      },
+      {
+        "family": "PlugX",
+        "count": 3
+      },
+      {
+        "family": "ShadowPad",
+        "count": 2
+      }
+    ],
+    "attack_techniques": [
+      {
+        "technique": "T1566 - Phishing",
+        "count": 22
+      },
+      {
+        "technique": "T1059 - Command and Scripting Interpreter",
+        "count": 18
+      },
+      {
+        "technique": "T1071 - Application Layer Protocol",
+        "count": 15
+      },
+      {
+        "technique": "T1105 - Ingress Tool Transfer",
+        "count": 12
+      },
+      {
+        "technique": "T1027 - Obfuscated Files or Information",
+        "count": 11
+      },
+      {
+        "technique": "T1547 - Boot or Logon Autostart Execution",
+        "count": 9
+      },
+      {
+        "technique": "T1082 - System Information Discovery",
+        "count": 8
+      },
+      {
+        "technique": "T1055 - Process Injection",
+        "count": 7
+      }
+    ],
+    "australia_relevant_count": 3,
+    "australia_relevant": [
+      {
+        "name": "APT40 targeting Australian maritime sector",
+        "adversary": "APT40",
+        "tags": [
+          "australia",
+          "apt40",
+          "maritime"
+        ],
+        "indicator_count": 45
+      },
+      {
+        "name": "Credential harvesting campaign targeting AU education",
+        "adversary": "",
+        "tags": [
+          "australia",
+          "phishing",
+          "education"
+        ],
+        "indicator_count": 23
+      },
+      {
+        "name": "Critical infrastructure scanning activity - APAC",
+        "adversary": "",
+        "tags": [
+          "apac",
+          "scanning",
+          "critical-infrastructure"
+        ],
+        "indicator_count": 67
+      }
+    ]
+  },
+  "otx_pulses": [
+    {
+      "name": "APT40 targeting Australian maritime sector",
+      "description": "Indicators associated with APT40 operations targeting Australian maritime and defence.",
+      "created": "2026-03-07",
+      "tags": [
+        "australia",
+        "apt40",
+        "maritime"
+      ],
+      "targeted_countries": [
+        "AU"
+      ],
+      "adversary": "APT40",
+      "malware_families": [
+        "ScanBox",
+        "PlugX"
+      ],
+      "attack_ids": [
+        "T1566"
+      ],
+      "indicator_count": 45
+    },
+    {
+      "name": "Volt Typhoon living-off-the-land infrastructure",
+      "description": "Network infrastructure associated with Volt Typhoon pre-positioning activities.",
+      "created": "2026-03-05",
+      "tags": [
+        "china",
+        "lotl",
+        "critical-infrastructure"
+      ],
+      "targeted_countries": [
+        "US",
+        "AU",
+        "GB"
+      ],
+      "adversary": "Volt Typhoon",
+      "malware_families": [],
+      "attack_ids": [
+        "T1059",
+        "T1071"
+      ],
+      "indicator_count": 89
+    },
+    {
+      "name": "LockBit 4.0 ransomware indicators",
+      "description": "IOCs from recent LockBit 4.0 ransomware campaigns.",
+      "created": "2026-03-04",
+      "tags": [
+        "ransomware",
+        "lockbit"
+      ],
+      "targeted_countries": [
+        "US",
+        "DE",
+        "GB"
+      ],
+      "adversary": "",
+      "malware_families": [
+        "LockBit"
+      ],
+      "attack_ids": [
+        "T1486"
+      ],
+      "indicator_count": 112
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "fetched_at": "2026-03-10T14:24:46.672403+00:00",
+  "analysis": {
+    "urlhaus": {
+      "total": 87,
+      "threat_types": {
+        "malware_download": 34,
+        "phishing": 28,
+        "cryptomining": 12,
+        "ransomware": 8,
+        "c2": 5
+      },
+      "statuses": {
+        "online": 45,
+        "offline": 32,
+        "unknown": 10
+      }
+    },
+    "threatfox": {
+      "total": 156,
+      "top_malware": {
+        "AgentTesla": 23,
+        "Remcos": 18,
+        "AsyncRAT": 15,
+        "RedLine": 14,
+        "Formbook": 12,
+        "LockBit": 10,
+        "QakBot": 9,
+        "Emotet": 8,
+        "Cobalt Strike": 7,
+        "IcedID": 6
+      },
+      "ioc_types": {
+        "ip:port": 67,
+        "domain": 45,
+        "url": 28,
+        "hash": 16
+      }
+    },
+    "malwarebazaar": {
+      "total": 94,
+      "file_types": {
+        "exe": 28,
+        "dll": 22,
+        "doc": 15,
+        "docx": 10,
+        "xls": 8,
+        "zip": 6,
+        "iso": 3,
+        "vbs": 2
+      },
+      "top_signatures": {
+        "AgentTesla": 15,
+        "Remcos": 12,
+        "AsyncRAT": 9,
+        "RedLine": 8,
+        "Formbook": 7,
+        "LockBit3": 6,
+        "QakBot": 5
+      }
+    },
+    "top_tags": [
+      {
+        "tag": "AgentTesla",
+        "count": 38
+      },
+      {
+        "tag": "Remcos",
+        "count": 30
+      },
+      {
+        "tag": "exe",
+        "count": 28
+      },
+      {
+        "tag": "phishing",
+        "count": 28
+      },
+      {
+        "tag": "AsyncRAT",
+        "count": 24
+      },
+      {
+        "tag": "RedLine",
+        "count": 22
+      },
+      {
+        "tag": "ransomware",
+        "count": 18
+      },
+      {
+        "tag": "Formbook",
+        "count": 17
+      },
+      {
+        "tag": "LockBit",
+        "count": 16
+      },
+      {
+        "tag": "CobaltStrike",
+        "count": 14
+      }
+    ]
+  },
+  "urlhaus_urls": [],
+  "threatfox_iocs": [],
+  "malwarebazaar_samples": []
+}
