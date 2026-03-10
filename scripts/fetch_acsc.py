@@ -31,11 +31,24 @@ def fetch_acsc_feeds() -> list[dict]:
         except Exception as e:
             logger.warning(f"  fetch_url failed for {feed_name}: {e}")
 
-        # Fallback: let feedparser fetch directly (its own HTTP client)
+        # Fallback: let feedparser fetch directly with a browser User-Agent
+        # (cyber.gov.au blocks bot UAs from cloud IPs)
         if feed is None or not feed.entries:
             try:
                 logger.info(f"  Trying feedparser direct fetch for {feed_name}...")
-                feed = feedparser.parse(feed_url)
+                _BROWSER_UA = (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/131.0.0.0 Safari/537.36"
+                )
+                feed = feedparser.parse(
+                    feed_url,
+                    request_headers={
+                        "User-Agent": _BROWSER_UA,
+                        "Accept": "application/rss+xml, application/xml, text/xml, */*",
+                        "Accept-Language": "en-AU,en;q=0.9",
+                    }
+                )
             except Exception as e:
                 logger.error(f"  feedparser direct fetch also failed for {feed_name}: {e}")
                 continue

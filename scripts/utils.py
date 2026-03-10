@@ -18,6 +18,14 @@ logging.basicConfig(
 logger = logging.getLogger("cyber-landscape")
 
 
+# Browser-like User-Agent for sites that block bot traffic (e.g. .gov.au)
+_BROWSER_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/131.0.0.0 Safari/537.36"
+)
+
+
 def fetch_url(url: str, headers: dict = None, params: dict = None,
               method: str = "GET", json_body: dict = None,
               retries: int = 3, backoff: float = 2.0,
@@ -25,11 +33,18 @@ def fetch_url(url: str, headers: dict = None, params: dict = None,
     """Fetch a URL with retries and exponential backoff."""
     merged_headers = {**REQUEST_HEADERS, **(headers or {})}
 
-    # Use longer timeout for slow government sites
-    if timeout is None:
-        if ".gov.au" in url:
-            timeout = 180
-        elif ".gov." in url:
+    # .gov.au sites block bot User-Agents from cloud IPs;
+    # use a browser UA and only retry once (let the feedparser fallback handle it)
+    is_gov_au = ".gov.au" in url
+    if is_gov_au:
+        merged_headers["User-Agent"] = _BROWSER_UA
+        merged_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        merged_headers["Accept-Language"] = "en-AU,en;q=0.9"
+        if timeout is None:
+            timeout = 60
+        retries = min(retries, 1)  # fail fast, let feedparser fallback try
+    elif timeout is None:
+        if ".gov." in url:
             timeout = 90
         else:
             timeout = REQUEST_TIMEOUT
