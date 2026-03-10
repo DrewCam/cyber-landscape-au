@@ -251,7 +251,7 @@ def generate_advisories_page():
         content += f"| {source} | {count} |\n"
 
     # Group by source
-    for source in ["ACSC Alerts", "ACSC Publications", "AusCERT", "CISA"]:
+    for source in ["ACSC Alerts", "ACSC Advisories", "AusCERT", "CISA"]:
         source_items = [a for a in advisories if a["source"] == source]
         if not source_items:
             continue
@@ -903,7 +903,7 @@ The pipeline runs on a scheduled basis (configurable via GitHub Actions cron) to
 | Source | Type | URL | Update Frequency |
 |--------|------|-----|-----------------|
 | ASD/ACSC Alerts | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published |
-| ASD/ACSC Publications | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published |
+| ASD/ACSC Advisories | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published |
 | AusCERT Bulletins | RSS Feed | [auscert.org.au](https://www.auscert.org.au/) | As published |
 | OAIC NDB Reports | Curated data | [oaic.gov.au](https://www.oaic.gov.au/) | Bi-annual |
 

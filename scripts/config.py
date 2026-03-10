@@ -24,8 +24,8 @@ NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 # Data source URLs
 SOURCES = {
     # ASD / ACSC
-    "acsc_alerts_rss": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories/rss.xml",
-    "acsc_publications_rss": "https://www.cyber.gov.au/about-us/view-all-content/publications/rss.xml",
+    "acsc_alerts_rss": "https://www.cyber.gov.au/rss/alerts",
+    "acsc_advisories_rss": "https://www.cyber.gov.au/rss/advisories",
 
     # CISA
     "cisa_kev": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
@@ -49,7 +49,7 @@ SOURCES = {
     "oaic_ndb": "https://www.oaic.gov.au/privacy/notifiable-data-breaches",
 
     # AusCERT
-    "auscert_rss": "https://www.auscert.org.au/rss/bulletins/",
+    "auscert_rss": "https://portal.auscert.org.au/rss/bulletins/",
 
     # MITRE ATT&CK
     "mitre_attack_enterprise": "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json",

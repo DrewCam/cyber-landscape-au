@@ -15,7 +15,7 @@ def fetch_acsc_advisories() -> list[dict]:
 
     for feed_name, feed_url in [
         ("ACSC Alerts", SOURCES["acsc_alerts_rss"]),
-        ("ACSC Publications", SOURCES["acsc_publications_rss"]),
+        ("ACSC Advisories", SOURCES["acsc_advisories_rss"]),
     ]:
         try:
             resp = fetch_url(feed_url)
