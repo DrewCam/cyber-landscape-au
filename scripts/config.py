@@ -20,6 +20,7 @@ SHODAN_API_KEY = os.environ.get("SHODAN_API_KEY", "")
 OTX_API_KEY = os.environ.get("OTX_API_KEY", "")
 GREYNOISE_API_KEY = os.environ.get("GREYNOISE_API_KEY", "")
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
+ABUSE_CH_AUTH_KEY = os.environ.get("ABUSE_CH_AUTH_KEY", "")
 
 # Data source URLs
 SOURCES = {
@@ -37,7 +38,7 @@ SOURCES = {
     # NVD / CVE
     "nvd_cve_api": "https://services.nvd.nist.gov/rest/json/cves/2.0",
 
-    # abuse.ch
+    # abuse.ch (Auth-Key required since June 2025)
     "urlhaus_recent": "https://urlhaus-api.abuse.ch/v1/urls/recent/",
     "threatfox_iocs": "https://threatfox-api.abuse.ch/api/v1/",
     "malwarebazaar_recent": "https://mb-api.abuse.ch/api/v1/",
@@ -45,8 +46,8 @@ SOURCES = {
     # AlienVault OTX
     "otx_pulses": "https://otx.alienvault.com/api/v1/pulses/subscribed",
 
-    # GreyNoise
-    "greynoise_trends": "https://api.greynoise.io/v3/trends/ips",
+    # GreyNoise (v3 API)
+    "greynoise_community": "https://api.greynoise.io/v3/community/",
 
     # OAIC Notifiable Data Breaches
     "oaic_ndb": "https://www.oaic.gov.au/privacy/notifiable-data-breaches",
@@ -58,7 +59,7 @@ SOURCES = {
     "mitre_attack_enterprise": "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json",
 
     # Geopolitical / OSINT
-    "aspi_rss": "https://www.aspi.org.au/feed",
+    "aspi_rss": "https://www.aspistrategist.org.au/feed/",
     "bom_cyber_news": "https://www.bleepingcomputer.com/feed/",
 }
 
