@@ -37,6 +37,64 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Fetch ACSC feeds via RSS action
+        id: acsc_feeds
+        uses: Promptly-Technologies-LLC/rss-fetch-action@v2
+        continue-on-error: true
+        with:
+          feed_url: '["https://www.cyber.gov.au/rss/alerts", "https://www.cyber.gov.au/rss/advisories", "https://www.cyber.gov.au/rss/news", "https://www.cyber.gov.au/rss/publications", "https://www.cyber.gov.au/rss/threats"]'
+          file_path: '["data/cache/acsc_alerts.json", "data/cache/acsc_advisories.json", "data/cache/acsc_news.json", "data/cache/acsc_publications.json", "data/cache/acsc_threats.json"]'
+
+      - name: Merge ACSC feeds into cache
+        if: steps.acsc_feeds.outcome == 'success'
+        run: |
+          python3 -c "
+          import json, glob, os
+          from datetime import datetime, timezone
+          entries = []
+          feed_names = {
+              'acsc_alerts': 'ACSC Alerts',
+              'acsc_advisories': 'ACSC Advisories',
+              'acsc_news': 'ACSC News',
+              'acsc_publications': 'ACSC Publications',
+              'acsc_threats': 'ACSC Threats',
+          }
+          for fname, source in feed_names.items():
+              path = f'data/cache/{fname}.json'
+              if not os.path.exists(path):
+                  continue
+              with open(path) as f:
+                  data = json.load(f)
+              for e in data.get('entries', []):
+                  summary = e.get('description', '')
+                  if len(summary) > 300:
+                      summary = summary[:297] + '...'
+                  entries.append({
+                      'title': e.get('title', 'Untitled'),
+                      'link': e.get('link', ''),
+                      'published': e.get('published', ''),
+                      'summary': summary,
+                      'source': source,
+                  })
+          if entries:
+              cache = {
+                  'cached_at': datetime.now(timezone.utc).isoformat(),
+                  'entry_count': len(entries),
+                  'entries': entries,
+              }
+              os.makedirs('data/cache', exist_ok=True)
+              with open('data/cache/acsc_feeds.json', 'w') as f:
+                  json.dump(cache, f, indent=2)
+              print(f'Merged {len(entries)} ACSC entries into cache')
+          else:
+              print('No entries found in RSS action output')
+          # Clean up individual feed files
+          for fname in feed_names:
+              path = f'data/cache/{fname}.json'
+              if os.path.exists(path):
+                  os.remove(path)
+          "
+
       - name: Fetch data and generate pages
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}

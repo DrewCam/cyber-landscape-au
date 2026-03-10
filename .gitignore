@@ -7,3 +7,7 @@ __pycache__/
 dist/
 build/
 .cache/
+docs/assets/data/
+
+# Track the ACSC cache (fetched locally, used by CI)
+!data/cache/

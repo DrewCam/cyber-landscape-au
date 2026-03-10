@@ -21,6 +21,7 @@ OTX_API_KEY = os.environ.get("OTX_API_KEY", "")
 GREYNOISE_API_KEY = os.environ.get("GREYNOISE_API_KEY", "")
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 ABUSE_CH_AUTH_KEY = os.environ.get("ABUSE_CH_AUTH_KEY", "")
+ACSC_FEED_URL = os.environ.get("ACSC_FEED_URL", "")  # Optional: Feeder.co JSON export URL
 
 # Data source URLs
 SOURCES = {
