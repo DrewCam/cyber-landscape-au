@@ -11,34 +11,50 @@ from .utils import logger, save_data, fetch_url
 
 
 def fetch_greynoise_trends() -> dict:
-    """Fetch internet noise/scanning trends from GreyNoise."""
-    logger.info("Fetching GreyNoise trends...")
+    """Fetch internet noise/scanning trends from GreyNoise Community API (v3).
+
+    The community endpoint provides per-IP classification (noise/RIOT/unknown).
+    We query a set of well-known IPs to demonstrate the classification capability
+    and report API availability.
+    """
+    logger.info("Fetching GreyNoise data (v3 community)...")
 
     if not GREYNOISE_API_KEY:
-        logger.warning("  No GREYNOISE_API_KEY set, using community endpoint")
-        # Use the community RIOT and noise endpoints instead
-        stats = {"available": False, "note": "Set GREYNOISE_API_KEY for live data"}
-        return stats
+        logger.warning("  No GREYNOISE_API_KEY set, skipping GreyNoise")
+        return {"available": False, "note": "Set GREYNOISE_API_KEY for live data"}
 
     headers = {"key": GREYNOISE_API_KEY}
-    resp = fetch_url(SOURCES["greynoise_trends"], headers=headers)
-    if not resp:
-        return {"available": False}
 
-    return resp.json()
+    # Query a handful of well-known scanner/benign IPs to show classification
+    sample_ips = [
+        "8.8.8.8",       # Google DNS (likely RIOT/benign)
+        "1.1.1.1",       # Cloudflare DNS
+        "159.203.176.25", # Known scanner
+    ]
+    results = []
+    for ip in sample_ips:
+        url = f"{SOURCES['greynoise_community']}{ip}"
+        resp = fetch_url(url, headers=headers)
+        if resp:
+            try:
+                info = resp.json()
+                results.append({
+                    "ip": ip,
+                    "noise": info.get("noise", False),
+                    "riot": info.get("riot", False),
+                    "classification": info.get("classification", "unknown"),
+                    "name": info.get("name", ""),
+                    "message": info.get("message", ""),
+                })
+            except Exception:
+                pass
 
-
-def fetch_greynoise_community_ip(ip: str = "8.8.8.8") -> dict:
-    """Example query to GreyNoise community API."""
-    url = f"https://api.greynoise.io/v3/community/{ip}"
-    headers = {}
-    if GREYNOISE_API_KEY:
-        headers["key"] = GREYNOISE_API_KEY
-
-    resp = fetch_url(url, headers=headers)
-    if not resp:
-        return {}
-    return resp.json()
+    logger.info(f"  GreyNoise: queried {len(results)} IPs")
+    return {
+        "available": True,
+        "sample_results": results,
+        "note": "GreyNoise Community API v3 - per-IP classification",
+    }
 
 
 def fetch_otx_pulses() -> list[dict]:
@@ -70,8 +86,14 @@ def fetch_otx_pulses() -> list[dict]:
             "tags": p.get("tags", [])[:10],
             "targeted_countries": p.get("targeted_countries", []),
             "adversary": p.get("adversary", ""),
-            "malware_families": [m.get("display_name", "") for m in p.get("malware_families", [])],
-            "attack_ids": [a.get("display_name", "") for a in p.get("attack_ids", [])],
+            "malware_families": [
+                m.get("display_name", str(m)) if isinstance(m, dict) else str(m)
+                for m in p.get("malware_families", [])
+            ],
+            "attack_ids": [
+                a.get("display_name", str(a)) if isinstance(a, dict) else str(a)
+                for a in p.get("attack_ids", [])
+            ],
             "indicator_count": len(p.get("indicators", [])),
             "pulse_source": p.get("pulse_source", ""),
         } for p in pulses[:50]]

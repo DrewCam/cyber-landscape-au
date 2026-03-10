@@ -7,23 +7,33 @@ Fetch threat data from abuse.ch services:
 from datetime import datetime, timezone
 from collections import Counter
 
-from .config import SOURCES
+from .config import SOURCES, ABUSE_CH_AUTH_KEY
 from .utils import logger, save_data, fetch_url
+
+
+def _abuse_ch_headers() -> dict:
+    """Return auth headers for abuse.ch APIs (required since June 2025)."""
+    if ABUSE_CH_AUTH_KEY:
+        return {"Auth-Key": ABUSE_CH_AUTH_KEY}
+    logger.warning("  No ABUSE_CH_AUTH_KEY set. abuse.ch APIs require authentication since June 2025.")
+    return {}
 
 
 def fetch_urlhaus_recent() -> list[dict]:
     """Fetch recent malicious URLs from URLhaus."""
     logger.info("Fetching URLhaus recent URLs...")
+    headers = _abuse_ch_headers()
+    if not headers:
+        return []
+
     resp = fetch_url(
         SOURCES["urlhaus_recent"],
+        headers=headers,
         method="POST",
         json_body={"limit": 100}
     )
     if not resp:
-        # Try GET as fallback
-        resp = fetch_url(SOURCES["urlhaus_recent"])
-        if not resp:
-            return []
+        return []
 
     try:
         data = resp.json()
@@ -47,8 +57,13 @@ def fetch_urlhaus_recent() -> list[dict]:
 def fetch_threatfox_iocs(days: int = 7) -> list[dict]:
     """Fetch recent IOCs from ThreatFox."""
     logger.info(f"Fetching ThreatFox IOCs (last {days} days)...")
+    headers = _abuse_ch_headers()
+    if not headers:
+        return []
+
     resp = fetch_url(
         SOURCES["threatfox_iocs"],
+        headers=headers,
         method="POST",
         json_body={"query": "get_iocs", "days": days}
     )
@@ -78,8 +93,13 @@ def fetch_threatfox_iocs(days: int = 7) -> list[dict]:
 def fetch_malwarebazaar_recent() -> list[dict]:
     """Fetch recent malware samples from MalwareBazaar."""
     logger.info("Fetching MalwareBazaar recent samples...")
+    headers = _abuse_ch_headers()
+    if not headers:
+        return []
+
     resp = fetch_url(
         SOURCES["malwarebazaar_recent"],
+        headers=headers,
         method="POST",
         json_body={"query": "get_recent", "selector": "time"}
     )

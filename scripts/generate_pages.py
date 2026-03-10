@@ -939,6 +939,7 @@ The pipeline runs on a scheduled basis (configurable via GitHub Actions cron) to
 | AlienVault OTX | REST API | [otx.alienvault.com](https://otx.alienvault.com/) | `OTX_API_KEY` |
 | GreyNoise | REST API | [greynoise.io](https://www.greynoise.io/) | `GREYNOISE_API_KEY` |
 | Shodan | REST API | [shodan.io](https://www.shodan.io/) | `SHODAN_API_KEY` |
+| abuse.ch | REST API | [abuse.ch](https://abuse.ch/) | `ABUSE_CH_AUTH_KEY` |
 
 ## API Key Setup Guide
 
@@ -989,6 +990,17 @@ Shodan indexes internet-facing devices and services globally. Used here to query
 
 **Cost:** Free tier available. Lifetime membership recommended for country-level queries.
 
+### abuse.ch (URLhaus, ThreatFox, MalwareBazaar)
+
+abuse.ch threat intelligence APIs have required authentication since June 2025. An Auth-Key is needed for URLhaus, ThreatFox, and MalwareBazaar.
+
+1. Go to [https://auth.abuse.ch/](https://auth.abuse.ch/) and register for a free account
+2. Once registered and logged in, navigate to your profile/account settings
+3. Copy your **Auth-Key** (API authentication key)
+4. **GitHub Secret name:** `ABUSE_CH_AUTH_KEY`
+
+**Cost:** Free. Community-driven threat intelligence platform.
+
 ### Adding Secrets to GitHub
 
 In your repository:
@@ -1023,6 +1035,7 @@ export SHODAN_API_KEY="your-key"
 export NVD_API_KEY="your-key"
 export OTX_API_KEY="your-key"
 export GREYNOISE_API_KEY="your-key"
+export ABUSE_CH_AUTH_KEY="your-key"
 
 # Fetch data and generate pages
 python -m scripts.build_all
