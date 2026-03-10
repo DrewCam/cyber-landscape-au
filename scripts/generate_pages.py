@@ -251,7 +251,7 @@ def generate_advisories_page():
         content += f"| {source} | {count} |\n"
 
     # Group by source
-    for source in ["ACSC Alerts", "ACSC Advisories", "AusCERT", "CISA"]:
+    for source in ["ACSC Alerts", "ACSC Advisories", "ACSC Threats", "ACSC News", "ACSC Publications", "AusCERT", "CISA"]:
         source_items = [a for a in advisories if a["source"] == source]
         if not source_items:
             continue

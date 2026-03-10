@@ -1,5 +1,6 @@
 """
-Fetch advisories and alerts from ASD/ACSC and AusCERT RSS feeds.
+Fetch advisories, alerts, news, publications, and threats from ASD/ACSC,
+AusCERT, and CISA RSS feeds.
 """
 import feedparser
 from datetime import datetime
@@ -8,15 +9,19 @@ from .config import SOURCES
 from .utils import logger, save_data, fetch_url, truncate
 
 
-def fetch_acsc_advisories() -> list[dict]:
-    """Fetch ACSC alerts and advisories via RSS."""
-    logger.info("Fetching ACSC advisories...")
+def fetch_acsc_feeds() -> list[dict]:
+    """Fetch all five ACSC RSS feeds."""
+    logger.info("Fetching ACSC feeds...")
     entries = []
 
-    for feed_name, feed_url in [
-        ("ACSC Alerts", SOURCES["acsc_alerts_rss"]),
-        ("ACSC Advisories", SOURCES["acsc_advisories_rss"]),
+    for feed_name, feed_key in [
+        ("ACSC Alerts", "acsc_alerts_rss"),
+        ("ACSC Advisories", "acsc_advisories_rss"),
+        ("ACSC News", "acsc_news_rss"),
+        ("ACSC Publications", "acsc_publications_rss"),
+        ("ACSC Threats", "acsc_threats_rss"),
     ]:
+        feed_url = SOURCES[feed_key]
         try:
             resp = fetch_url(feed_url)
             if not resp:
@@ -101,7 +106,7 @@ def fetch_cisa_alerts() -> list[dict]:
 
 def run():
     """Fetch all advisory sources and save."""
-    acsc = fetch_acsc_advisories()
+    acsc = fetch_acsc_feeds()
     auscert = fetch_auscert_bulletins()
     cisa = fetch_cisa_alerts()
 
@@ -113,14 +118,16 @@ def run():
         reverse=True
     )
 
+    # Count by source
+    by_source = {}
+    for a in all_advisories:
+        src = a["source"]
+        by_source[src] = by_source.get(src, 0) + 1
+
     data = {
         "fetched_at": datetime.utcnow().isoformat() + "Z",
         "total_count": len(all_advisories),
-        "by_source": {
-            "ACSC": len(acsc),
-            "AusCERT": len(auscert),
-            "CISA": len(cisa),
-        },
+        "by_source": by_source,
         "advisories": all_advisories,
     }
 

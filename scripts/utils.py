@@ -20,21 +20,29 @@ logger = logging.getLogger("cyber-landscape")
 
 def fetch_url(url: str, headers: dict = None, params: dict = None,
               method: str = "GET", json_body: dict = None,
-              retries: int = 3, backoff: float = 2.0) -> requests.Response | None:
+              retries: int = 3, backoff: float = 2.0,
+              timeout: int = None) -> requests.Response | None:
     """Fetch a URL with retries and exponential backoff."""
     merged_headers = {**REQUEST_HEADERS, **(headers or {})}
+
+    # Use longer timeout for slow government sites
+    if timeout is None:
+        if ".gov.au" in url or ".gov." in url:
+            timeout = 90
+        else:
+            timeout = REQUEST_TIMEOUT
 
     for attempt in range(retries):
         try:
             if method.upper() == "POST":
                 resp = requests.post(
                     url, headers=merged_headers, json=json_body,
-                    params=params, timeout=REQUEST_TIMEOUT
+                    params=params, timeout=timeout
                 )
             else:
                 resp = requests.get(
                     url, headers=merged_headers, params=params,
-                    timeout=REQUEST_TIMEOUT
+                    timeout=timeout
                 )
             resp.raise_for_status()
             return resp

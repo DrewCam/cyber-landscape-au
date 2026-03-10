@@ -26,6 +26,9 @@ SOURCES = {
     # ASD / ACSC
     "acsc_alerts_rss": "https://www.cyber.gov.au/rss/alerts",
     "acsc_advisories_rss": "https://www.cyber.gov.au/rss/advisories",
+    "acsc_news_rss": "https://www.cyber.gov.au/rss/news",
+    "acsc_publications_rss": "https://www.cyber.gov.au/rss/publications",
+    "acsc_threats_rss": "https://www.cyber.gov.au/rss/threats",
 
     # CISA
     "cisa_kev": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
