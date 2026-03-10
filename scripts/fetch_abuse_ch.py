@@ -20,7 +20,11 @@ def _abuse_ch_headers() -> dict:
 
 
 def fetch_urlhaus_recent() -> list[dict]:
-    """Fetch recent malicious URLs from URLhaus."""
+    """Fetch recent malicious URLs from URLhaus.
+
+    The /v1/urls/recent/ endpoint is GET-only and returns the last 1000 URLs.
+    Auth-Key is passed as a header.
+    """
     logger.info("Fetching URLhaus recent URLs...")
     headers = _abuse_ch_headers()
     if not headers:
@@ -29,8 +33,7 @@ def fetch_urlhaus_recent() -> list[dict]:
     resp = fetch_url(
         SOURCES["urlhaus_recent"],
         headers=headers,
-        method="POST",
-        json_body={"limit": 100}
+        method="GET",
     )
     if not resp:
         return []
@@ -65,7 +68,7 @@ def fetch_threatfox_iocs(days: int = 7) -> list[dict]:
         SOURCES["threatfox_iocs"],
         headers=headers,
         method="POST",
-        json_body={"query": "get_iocs", "days": days}
+        json_body={"query": "get_iocs", "days": days},
     )
     if not resp:
         return []
@@ -101,7 +104,7 @@ def fetch_malwarebazaar_recent() -> list[dict]:
         SOURCES["malwarebazaar_recent"],
         headers=headers,
         method="POST",
-        json_body={"query": "get_recent", "selector": "time"}
+        form_data={"query": "get_recent", "selector": "time"},
     )
     if not resp:
         return []

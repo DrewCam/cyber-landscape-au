@@ -25,11 +25,12 @@ def fetch_greynoise_trends() -> dict:
 
     headers = {"key": GREYNOISE_API_KEY}
 
-    # Query a handful of well-known scanner/benign IPs to show classification
+    # Query a handful of well-known IPs to show classification capability
     sample_ips = [
         "8.8.8.8",       # Google DNS (likely RIOT/benign)
         "1.1.1.1",       # Cloudflare DNS
-        "159.203.176.25", # Known scanner
+        "71.6.135.131",  # Censys scanner (known noise)
+        "185.180.143.7", # Known scanner
     ]
     results = []
     for ip in sample_ips:

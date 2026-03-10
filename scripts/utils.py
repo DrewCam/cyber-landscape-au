@@ -28,9 +28,17 @@ _BROWSER_UA = (
 
 def fetch_url(url: str, headers: dict = None, params: dict = None,
               method: str = "GET", json_body: dict = None,
+              form_data: dict = None,
               retries: int = 3, backoff: float = 2.0,
               timeout: int = None) -> requests.Response | None:
-    """Fetch a URL with retries and exponential backoff."""
+    """Fetch a URL with retries and exponential backoff.
+
+    Args:
+        json_body: Send POST with JSON content-type (application/json).
+        form_data: Send POST with form-encoded content-type
+                   (application/x-www-form-urlencoded). Takes precedence
+                   over json_body if both are provided.
+    """
     merged_headers = {**REQUEST_HEADERS, **(headers or {})}
 
     # .gov.au sites block bot User-Agents from cloud IPs;
@@ -52,10 +60,16 @@ def fetch_url(url: str, headers: dict = None, params: dict = None,
     for attempt in range(retries):
         try:
             if method.upper() == "POST":
-                resp = requests.post(
-                    url, headers=merged_headers, json=json_body,
-                    params=params, timeout=timeout
-                )
+                if form_data is not None:
+                    resp = requests.post(
+                        url, headers=merged_headers, data=form_data,
+                        params=params, timeout=timeout
+                    )
+                else:
+                    resp = requests.post(
+                        url, headers=merged_headers, json=json_body,
+                        params=params, timeout=timeout
+                    )
             else:
                 resp = requests.get(
                     url, headers=merged_headers, params=params,

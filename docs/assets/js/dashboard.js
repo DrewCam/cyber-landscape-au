@@ -457,6 +457,13 @@ function initCharts() {
   renderShodanExposureChart();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// MkDocs Material loads extra_javascript at the end of <body>, so
+// DOMContentLoaded may have already fired by the time this script runs.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    waitForChartJs(initCharts);
+  });
+} else {
+  // DOM already parsed; just wait for Chart.js CDN to finish loading
   waitForChartJs(initCharts);
-});
+}

@@ -37,19 +37,53 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Fetch ACSC feeds via RSS action
-        id: acsc_feeds
+      - name: Create cache directory
+        run: mkdir -p data/cache
+
+      - name: Fetch ACSC alerts feed
+        id: acsc_alerts
         uses: Promptly-Technologies-LLC/rss-fetch-action@v2
         continue-on-error: true
         with:
-          feed_url: '["https://www.cyber.gov.au/rss/alerts", "https://www.cyber.gov.au/rss/advisories", "https://www.cyber.gov.au/rss/news", "https://www.cyber.gov.au/rss/publications", "https://www.cyber.gov.au/rss/threats"]'
-          file_path: '["data/cache/acsc_alerts.json", "data/cache/acsc_advisories.json", "data/cache/acsc_news.json", "data/cache/acsc_publications.json", "data/cache/acsc_threats.json"]'
+          feed_url: 'https://www.cyber.gov.au/rss/alerts'
+          file_path: './data/cache/acsc_alerts.json'
+
+      - name: Fetch ACSC advisories feed
+        id: acsc_advisories
+        uses: Promptly-Technologies-LLC/rss-fetch-action@v2
+        continue-on-error: true
+        with:
+          feed_url: 'https://www.cyber.gov.au/rss/advisories'
+          file_path: './data/cache/acsc_advisories.json'
+
+      - name: Fetch ACSC news feed
+        id: acsc_news
+        uses: Promptly-Technologies-LLC/rss-fetch-action@v2
+        continue-on-error: true
+        with:
+          feed_url: 'https://www.cyber.gov.au/rss/news'
+          file_path: './data/cache/acsc_news.json'
+
+      - name: Fetch ACSC publications feed
+        id: acsc_publications
+        uses: Promptly-Technologies-LLC/rss-fetch-action@v2
+        continue-on-error: true
+        with:
+          feed_url: 'https://www.cyber.gov.au/rss/publications'
+          file_path: './data/cache/acsc_publications.json'
+
+      - name: Fetch ACSC threats feed
+        id: acsc_threats
+        uses: Promptly-Technologies-LLC/rss-fetch-action@v2
+        continue-on-error: true
+        with:
+          feed_url: 'https://www.cyber.gov.au/rss/threats'
+          file_path: './data/cache/acsc_threats.json'
 
       - name: Merge ACSC feeds into cache
-        if: steps.acsc_feeds.outcome == 'success'
         run: |
           python3 -c "
-          import json, glob, os
+          import json, os
           from datetime import datetime, timezone
           entries = []
           feed_names = {
@@ -62,6 +96,7 @@ jobs:
           for fname, source in feed_names.items():
               path = f'data/cache/{fname}.json'
               if not os.path.exists(path):
+                  print(f'  {fname}: not found (feed fetch likely failed)')
                   continue
               with open(path) as f:
                   data = json.load(f)
@@ -76,23 +111,19 @@ jobs:
                       'summary': summary,
                       'source': source,
                   })
+              os.remove(path)  # clean up individual file
           if entries:
               cache = {
                   'cached_at': datetime.now(timezone.utc).isoformat(),
                   'entry_count': len(entries),
                   'entries': entries,
               }
-              os.makedirs('data/cache', exist_ok=True)
               with open('data/cache/acsc_feeds.json', 'w') as f:
                   json.dump(cache, f, indent=2)
               print(f'Merged {len(entries)} ACSC entries into cache')
           else:
-              print('No entries found in RSS action output')
-          # Clean up individual feed files
-          for fname in feed_names:
-              path = f'data/cache/{fname}.json'
-              if os.path.exists(path):
-                  os.remove(path)
+              print('No ACSC feeds fetched (all blocked by Cloudflare)')
+              print('ACSC data will come from committed cache if available')
           "
 
       - name: Fetch data and generate pages
