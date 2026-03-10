@@ -53,8 +53,12 @@ SOURCES = {
     # OAIC Notifiable Data Breaches
     "oaic_ndb": "https://www.oaic.gov.au/privacy/notifiable-data-breaches",
 
-    # AusCERT
-    "auscert_rss": "https://portal.auscert.org.au/rss/bulletins/",
+    # Five Eyes partner CERTs (publicly accessible, no login required)
+    "cccs_advisories": "https://cyber.gc.ca/api/cccs/atom/v1/get?feed=alerts_advisories",
+    "ncsc_uk_reports": "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml",
+
+    # CISA ICS Advisories (critical infrastructure, relevant to SOCI Act)
+    "cisa_ics_rss": "https://www.cisa.gov/cybersecurity-advisories/ics-advisories.xml",
 
     # MITRE ATT&CK
     "mitre_attack_enterprise": "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json",

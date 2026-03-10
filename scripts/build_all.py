@@ -18,7 +18,7 @@ from .utils import logger
 def fetch_all():
     """Run all data fetcher modules."""
     fetchers = [
-        ("ACSC/CISA/AusCERT Advisories", "scripts.fetch_acsc"),
+        ("ACSC/Five Eyes CERTs/CISA Advisories", "scripts.fetch_acsc"),
         ("CISA KEV & NVD CVEs", "scripts.fetch_cisa_kev"),
         ("abuse.ch Threat Feeds", "scripts.fetch_abuse_ch"),
         ("OSINT (OTX, GreyNoise)", "scripts.fetch_osint"),

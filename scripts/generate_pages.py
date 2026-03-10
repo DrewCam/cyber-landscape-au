@@ -96,7 +96,7 @@ hide:
 
     ---
 
-    Active Advisories (ACSC, AusCERT, CISA)
+    Active Advisories (ACSC, Five Eyes CERTs, CISA)
 
     [:octicons-arrow-right-24: View advisories](threats/advisories.md)
 
@@ -183,7 +183,7 @@ hide:
 ---
 
 <div class="data-sources-footer" markdown>
-**Data sources:** ASD/ACSC | AusCERT | CISA | NVD | abuse.ch (URLhaus, ThreatFox, MalwareBazaar) | AlienVault OTX | OAIC | ASPI | BleepingComputer
+**Data sources:** ASD/ACSC | CCCS (Canada) | NCSC (UK) | CISA | CISA ICS-CERT | NVD | abuse.ch (URLhaus, ThreatFox, MalwareBazaar) | AlienVault OTX | OAIC | ASPI | BleepingComputer
 
 [:octicons-arrow-right-24: View all data sources and methodology](sources.md)
 </div>
@@ -211,7 +211,9 @@ This section aggregates threat intelligence from Australian and international so
 | Source | Type | Coverage |
 |--------|------|----------|
 | ASD/ACSC | Government advisories | Australian-specific alerts and guidance |
-| AusCERT | CERT advisories | Australian security bulletins |
+| CCCS (Canada) | Government CERT | Canadian Five Eyes partner advisories |
+| NCSC (UK) | Government CERT | UK Five Eyes partner threat reports |
+| CISA ICS-CERT | ICS advisories | Industrial control system security advisories |
 | CISA | US Government advisories | Global vulnerability and threat advisories |
 | NVD | Vulnerability database | CVE details with CVSS scoring |
 | CISA KEV | Exploited vulnerabilities | Confirmed actively exploited CVEs |
@@ -251,7 +253,7 @@ def generate_advisories_page():
         content += f"| {source} | {count} |\n"
 
     # Group by source
-    for source in ["ACSC Alerts", "ACSC Advisories", "ACSC Threats", "ACSC News", "ACSC Publications", "AusCERT", "CISA"]:
+    for source in ["ACSC Alerts", "ACSC Advisories", "ACSC Threats", "ACSC News", "ACSC Publications", "CCCS", "NCSC UK", "CISA", "CISA ICS"]:
         source_items = [a for a in advisories if a["source"] == source]
         if not source_items:
             continue
@@ -929,7 +931,8 @@ The pipeline runs on a scheduled basis (configurable via GitHub Actions cron) to
 |--------|------|-----|-----------------|
 | ASD/ACSC Alerts | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published |
 | ASD/ACSC Advisories | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published |
-| AusCERT Bulletins | RSS Feed | [auscert.org.au](https://www.auscert.org.au/) | As published |
+| CCCS Advisories (Canada) | Atom Feed | [cyber.gc.ca](https://www.cyber.gc.ca/) | As published |
+| NCSC UK Reports | RSS Feed | [ncsc.gov.uk](https://www.ncsc.gov.uk/) | As published |
 | OAIC NDB Reports | Curated data | [oaic.gov.au](https://www.oaic.gov.au/) | Bi-annual |
 
 ### International Government
@@ -937,6 +940,7 @@ The pipeline runs on a scheduled basis (configurable via GitHub Actions cron) to
 | Source | Type | URL | Update Frequency |
 |--------|------|-----|-----------------|
 | CISA Advisories | RSS Feed | [cisa.gov](https://www.cisa.gov/) | As published |
+| CISA ICS-CERT | RSS Feed | [cisa.gov](https://www.cisa.gov/cybersecurity-advisories/ics-advisories) | As published |
 | CISA KEV Catalog | JSON API | [cisa.gov](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | As updated |
 | NVD (CVE Database) | REST API | [nvd.nist.gov](https://nvd.nist.gov/) | Continuous |
 

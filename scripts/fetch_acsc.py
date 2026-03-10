@@ -1,6 +1,6 @@
 """
 Fetch advisories, alerts, news, publications, and threats from ASD/ACSC,
-AusCERT, and CISA RSS feeds.
+Five Eyes partner CERTs (CCCS, NCSC UK), CISA, and CISA ICS-CERT RSS feeds.
 
 cyber.gov.au blocks ALL cloud/datacenter IPs (including proxies and RSS services).
 ACSC feeds are fetched via one of three strategies:
@@ -186,16 +186,88 @@ def fetch_acsc_feeds() -> list[dict]:
     return _load_acsc_cache()
 
 
-def fetch_auscert_bulletins() -> list[dict]:
-    """Fetch AusCERT security bulletins via RSS."""
-    logger.info("Fetching AusCERT bulletins...")
+def fetch_cccs_advisories() -> list[dict]:
+    """Fetch Canadian Centre for Cyber Security advisories via Atom feed.
+
+    CCCS (Canada) is a Five Eyes partner with a publicly accessible Atom feed.
+    Replaces AusCERT which requires member-only access.
+    """
+    logger.info("Fetching CCCS (Canada) advisories...")
     entries = []
 
     try:
-        resp = fetch_url(SOURCES["auscert_rss"])
+        resp = fetch_url(SOURCES["cccs_advisories"])
         if resp:
             feed = feedparser.parse(resp.content)
             for entry in feed.entries[:50]:
+                published = ""
+                if hasattr(entry, "published"):
+                    published = entry.published
+                elif hasattr(entry, "updated"):
+                    published = entry.updated
+
+                entries.append({
+                    "title": entry.get("title", "Untitled"),
+                    "link": entry.get("link", ""),
+                    "published": published,
+                    "summary": truncate(entry.get("summary", ""), 300),
+                    "source": "CCCS",
+                })
+            logger.info(f"  CCCS: {len(feed.entries)} entries")
+    except Exception as e:
+        logger.error(f"Error fetching CCCS: {e}")
+
+    return entries
+
+
+def fetch_ncsc_uk_reports() -> list[dict]:
+    """Fetch UK NCSC threat reports and advisories via RSS.
+
+    UK NCSC is a Five Eyes partner. Their report feed includes
+    threat reports, advisories, and guidance relevant to allied nations.
+    """
+    logger.info("Fetching NCSC UK reports...")
+    entries = []
+
+    try:
+        resp = fetch_url(SOURCES["ncsc_uk_reports"])
+        if resp:
+            feed = feedparser.parse(resp.content)
+            for entry in feed.entries[:30]:
+                published = ""
+                if hasattr(entry, "published"):
+                    published = entry.published
+                elif hasattr(entry, "updated"):
+                    published = entry.updated
+
+                entries.append({
+                    "title": entry.get("title", "Untitled"),
+                    "link": entry.get("link", ""),
+                    "published": published,
+                    "summary": truncate(entry.get("summary", ""), 300),
+                    "source": "NCSC UK",
+                })
+            logger.info(f"  NCSC UK: {len(feed.entries)} entries")
+    except Exception as e:
+        logger.error(f"Error fetching NCSC UK: {e}")
+
+    return entries
+
+
+def fetch_cisa_ics_advisories() -> list[dict]:
+    """Fetch CISA ICS-CERT advisories via RSS.
+
+    Industrial control system advisories are directly relevant to
+    Australian critical infrastructure under the SOCI Act.
+    """
+    logger.info("Fetching CISA ICS advisories...")
+    entries = []
+
+    try:
+        resp = fetch_url(SOURCES["cisa_ics_rss"])
+        if resp:
+            feed = feedparser.parse(resp.content)
+            for entry in feed.entries[:30]:
                 published = ""
                 if hasattr(entry, "published"):
                     published = entry.published
@@ -205,11 +277,11 @@ def fetch_auscert_bulletins() -> list[dict]:
                     "link": entry.get("link", ""),
                     "published": published,
                     "summary": truncate(entry.get("summary", ""), 300),
-                    "source": "AusCERT",
+                    "source": "CISA ICS",
                 })
-            logger.info(f"  AusCERT: {len(feed.entries)} entries")
+            logger.info(f"  CISA ICS: {len(feed.entries)} entries")
     except Exception as e:
-        logger.error(f"Error fetching AusCERT: {e}")
+        logger.error(f"Error fetching CISA ICS: {e}")
 
     return entries
 
@@ -245,10 +317,12 @@ def fetch_cisa_alerts() -> list[dict]:
 def run():
     """Fetch all advisory sources and save."""
     acsc = fetch_acsc_feeds()
-    auscert = fetch_auscert_bulletins()
+    cccs = fetch_cccs_advisories()
+    ncsc_uk = fetch_ncsc_uk_reports()
     cisa = fetch_cisa_alerts()
+    cisa_ics = fetch_cisa_ics_advisories()
 
-    all_advisories = acsc + auscert + cisa
+    all_advisories = acsc + cccs + ncsc_uk + cisa + cisa_ics
 
     # Sort by date (newest first)
     all_advisories.sort(
