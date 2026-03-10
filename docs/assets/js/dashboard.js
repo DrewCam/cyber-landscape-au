@@ -67,16 +67,43 @@ function baseOptions(title) {
   };
 }
 
-// Load JSON data file
-async function loadData(filename) {
-  try {
-    const resp = await fetch(`assets/data/${filename}`);
-    if (!resp.ok) return null;
-    return await resp.json();
-  } catch (e) {
-    console.warn(`Could not load ${filename}:`, e);
-    return null;
+// Load JSON data file.
+// Uses absolute path from the site root so it works regardless of page depth.
+// The base path is derived from the <link rel="canonical"> tag that MkDocs
+// Material injects on every page, falling back to the script src attribute.
+function getSiteRoot() {
+  // Method 1: canonical link (MkDocs Material always sets this from site_url)
+  const canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical) {
+    try {
+      const href = canonical.getAttribute('href');
+      const url = new URL(href);
+      // e.g. /cyber-landscape-au/threats/advisories/ -> extract /cyber-landscape-au/
+      const match = url.pathname.match(/^(\/[^/]+\/)/);
+      if (match) return match[1];
+    } catch (e) { /* fall through */ }
   }
+  // Method 2: script src attribute
+  const scripts = document.querySelectorAll('script[src]');
+  for (const s of scripts) {
+    const src = s.getAttribute('src');
+    if (src && src.includes('dashboard.js')) {
+      const idx = src.indexOf('assets/js/dashboard.js');
+      if (idx >= 0) return src.substring(0, idx) || './';
+    }
+  }
+  return '/cyber-landscape-au/';
+}
+
+async function loadData(filename) {
+  const root = getSiteRoot();
+  const url = `${root}assets/data/${filename}`;
+  try {
+    const resp = await fetch(url);
+    if (resp.ok) return await resp.json();
+  } catch (e) { /* ignore */ }
+  console.warn(`Could not load ${filename} from ${url}`);
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -402,17 +429,34 @@ async function renderShodanExposureChart() {
 // ---------------------------------------------------------------------------
 // Initialise all charts on page load
 // ---------------------------------------------------------------------------
+// Wait for Chart.js to be available before rendering
+function waitForChartJs(callback, maxWait) {
+  maxWait = maxWait || 5000;
+  const start = Date.now();
+  function check() {
+    if (typeof Chart !== 'undefined') {
+      callback();
+    } else if (Date.now() - start < maxWait) {
+      setTimeout(check, 100);
+    } else {
+      console.warn('Chart.js did not load within timeout');
+    }
+  }
+  check();
+}
+
+function initCharts() {
+  renderNdbTrendChart('ndbTrendChart');
+  renderNdbTrendChart('ndbDetailChart');
+  renderKevVendorChart();
+  renderCveSeverityChart();
+  renderUrlhausThreatChart();
+  renderMalwareFileTypeChart();
+  renderOtxCountryChart();
+  renderNdbSectorChart();
+  renderShodanExposureChart();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Small delay to ensure Chart.js is loaded
-  setTimeout(() => {
-    renderNdbTrendChart('ndbTrendChart');
-    renderNdbTrendChart('ndbDetailChart');
-    renderKevVendorChart();
-    renderCveSeverityChart();
-    renderUrlhausThreatChart();
-    renderMalwareFileTypeChart();
-    renderOtxCountryChart();
-    renderNdbSectorChart();
-    renderShodanExposureChart();
-  }, 100);
+  waitForChartJs(initCharts);
 });
