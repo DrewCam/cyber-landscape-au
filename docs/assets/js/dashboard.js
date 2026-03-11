@@ -118,17 +118,6 @@ async function loadData(filename) {
   return null;
 }
 
-const chartInstances = new Map();
-
-function renderChart(canvas, config) {
-  const existing = chartInstances.get(canvas.id);
-  if (existing) existing.destroy();
-
-  const chart = new Chart(canvas, config);
-  chartInstances.set(canvas.id, chart);
-  return chart;
-}
-
 // ---------------------------------------------------------------------------
 // NDB Trend Chart (index page and NDB stats page)
 // ---------------------------------------------------------------------------
