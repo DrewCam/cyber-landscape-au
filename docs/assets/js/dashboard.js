@@ -97,12 +97,23 @@ function getSiteRoot() {
 
 async function loadData(filename) {
   const root = getSiteRoot();
-  const url = `${root}assets/data/${filename}`;
-  try {
-    const resp = await fetch(url);
-    if (resp.ok) return await resp.json();
-  } catch (e) { /* ignore */ }
-  console.warn(`Could not load ${filename} from ${url}`);
+  const candidates = [
+    `${root}assets/data/${filename}`,
+    `/assets/data/${filename}`,
+    `/cyber-landscape-au/assets/data/${filename}`,
+    new URL(`assets/data/${filename}`, window.location.href).toString(),
+  ];
+
+  for (const url of [...new Set(candidates)]) {
+    try {
+      const resp = await fetch(url, { cache: 'no-cache' });
+      if (resp.ok) return await resp.json();
+    } catch (e) {
+      // Continue trying fallback URLs.
+    }
+  }
+
+  console.warn(`Could not load ${filename} from any known path`, candidates);
   return null;
 }
 
