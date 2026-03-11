@@ -16,6 +16,19 @@ env = Environment(loader=BaseLoader(), autoescape=False)
 env.filters["truncate"] = lambda s, n=200: (s[:n-3] + "...") if len(s) > n else s
 
 
+def truncate_text(value: str, limit: int) -> str:
+    """Truncate text cleanly at word boundaries and append ellipsis when needed."""
+    if not value:
+        return ""
+    if len(value) <= limit:
+        return value
+
+    clipped = value[: limit - 3].rstrip()
+    if " " in clipped:
+        clipped = clipped.rsplit(" ", 1)[0]
+    return f"{clipped}..."
+
+
 def write_page(rel_path: str, content: str):
     """Write a markdown page to docs directory."""
     filepath = DOCS_DIR / rel_path
@@ -54,13 +67,15 @@ def generate_index():
     top_advisories = advisories.get("advisories", [])[:5]
     adv_rows = ""
     for a in top_advisories:
-        adv_rows += f"| [{a['title'][:60]}]({a['link']}) | {a['source']} | {a.get('published', '')[:16]} |\n"
+        title = truncate_text(a.get("title", ""), 90)
+        adv_rows += f"| [{title}]({a['link']}) | {a['source']} | {a.get('published', '')[:16]} |\n"
 
     # Top 5 critical CVEs
     critical = recent_cves.get("critical", [])[:5]
     cve_rows = ""
     for c in critical:
-        cve_rows += f"| **{c['id']}** | {c.get('cvss_score', 'N/A')} | {c.get('description', '')[:80]}... |\n"
+        description = truncate_text(c.get("description", ""), 100)
+        cve_rows += f"| **{c['id']}** | {c.get('cvss_score', 'N/A')} | {description} |\n"
 
     # NDB trend
     ndb_trend = ndb.get("trend_summary", [])[:4]
@@ -73,7 +88,8 @@ def generate_index():
     actor_rows = ""
     for a in actors:
         status = ":material-alert-circle:{ .active }" if a.get("active") else ""
-        actor_rows += f"| **{a['name']}** | {a['attribution']} | {a['targets'][:40]} | {status} |\n"
+        targets = a.get("targets", "").rstrip(", ")
+        actor_rows += f"| **{a['name']}** | {a['attribution']} | {targets} | {status} |\n"
 
     content = f"""---
 hide:
@@ -262,8 +278,8 @@ def generate_advisories_page():
         content += "| Date | Advisory | Summary |\n|------|----------|--------|\n"
         for a in source_items[:25]:
             date = a.get("published", "")[:16]
-            title = a["title"][:70]
-            summary = a.get("summary", "")[:100].replace("|", " ").replace("\n", " ")
+            title = truncate_text(a.get("title", ""), 100)
+            summary = truncate_text(a.get("summary", "").replace("|", " ").replace("\n", " "), 140)
             content += f"| {date} | [{title}]({a['link']}) | {summary} |\n"
 
     write_page("threats/advisories.md", content)
@@ -334,7 +350,7 @@ The KEV catalog tracks vulnerabilities confirmed to be actively exploited in the
 |--------|------|-------------|
 """
     for c in cves.get("critical", [])[:20]:
-        desc = c.get("description", "")[:120].replace("|", " ").replace("\n", " ")
+        desc = truncate_text(c.get("description", "").replace("|", " ").replace("\n", " "), 140)
         content += f"| **{c['id']}** | {c.get('cvss_score', 'N/A')} | {desc} |\n"
 
     write_page("threats/vulnerabilities.md", content)

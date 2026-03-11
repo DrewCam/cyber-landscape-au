@@ -1,6 +1,6 @@
 # :material-access-point-network: Internet Exposure & Scanning Trends
 
-**Last updated:** 2026-03-10 14:39 UTC
+**Last updated:** 2026-03-11 04:19 UTC
 
 ## :material-radar: Shodan: Australian Internet Exposure
 
