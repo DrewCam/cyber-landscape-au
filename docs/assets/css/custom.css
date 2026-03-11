@@ -36,6 +36,14 @@ canvas {
   border-radius: 8px;
 }
 
+/* Prevent runaway chart canvas growth in dynamic page transitions */
+.md-typeset canvas {
+  display: block;
+  width: 100% !important;
+  min-height: 260px;
+  max-height: 480px;
+}
+
 /* Table styling */
 .md-typeset table:not([class]) {
   font-size: 0.85em;
