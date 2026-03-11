@@ -1,6 +1,6 @@
 # :material-shield-check: ASD Essential Eight Maturity Model
 
-**Last updated:** 2026-03-10 14:39 UTC
+**Last updated:** 2026-03-11 04:19 UTC
 
 The [Essential Eight](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight) is a set of baseline mitigation strategies from the Australian Signals Directorate (ASD), recommended for all Australian organisations and mandated for Commonwealth entities.
 

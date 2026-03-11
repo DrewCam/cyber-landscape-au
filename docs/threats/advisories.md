@@ -1,6 +1,6 @@
 # :material-bell-alert: Security Advisories
 
-**Last updated:** 2026-03-10 14:39 UTC | **Total: 15 advisories**
+**Last updated:** 2026-03-11 04:19 UTC | **Total: 15 advisories**
 
 ## Sources
 
@@ -20,22 +20,12 @@
 | 2026-03-01T11:00 | [Advisory on PRC-linked cyber actors targeting telcos](https://www.cyber.gov.au/) | Joint advisory on PRC-affiliated threat actors targeting telecommunications providers. |
 | 2026-02-28T14:00 | [Ivanti Connect Secure exploitation guidance](https://www.cyber.gov.au/) | Guidance on detecting and mitigating exploitation of Ivanti Connect Secure appliances. |
 
-## AusCERT
-
-| Date | Advisory | Summary |
-|------|----------|--------|
-| 2026-03-09T06:00 | [ESB-2026.0312 - Apache Tomcat RCE vulnerability](https://www.auscert.org.au/) | Critical remote code execution vulnerability in Apache Tomcat (CVE-2026-XXXX). |
-| 2026-03-07T05:00 | [ESB-2026.0298 - Microsoft Exchange Server updates](https://www.auscert.org.au/) | Security updates addressing multiple vulnerabilities in Microsoft Exchange Server. |
-| 2026-03-05T07:00 | [ESB-2026.0285 - Cisco IOS XE privilege escalation](https://www.auscert.org.au/) | Privilege escalation vulnerability in Cisco IOS XE web UI. |
-| 2026-03-03T04:00 | [ESB-2026.0271 - VMware vCenter Server critical patch](https://www.auscert.org.au/) | Critical authentication bypass in VMware vCenter Server. |
-| 2026-03-01T06:00 | [ESB-2026.0258 - Palo Alto PAN-OS command injection](https://www.auscert.org.au/) | Command injection vulnerability in Palo Alto Networks PAN-OS GlobalProtect. |
-
 ## CISA
 
 | Date | Advisory | Summary |
 |------|----------|--------|
 | 2026-03-09T15:00 | [CISA Adds Three Known Exploited Vulnerabilities to Catalog](https://www.cisa.gov/) | CISA has added three new vulnerabilities to its Known Exploited Vulnerabilities Catalog. |
 | 2026-03-07T12:00 | [Threat Actors Exploit Multiple ICS/SCADA Vulnerabilities](https://www.cisa.gov/) | Multiple threat actors exploiting vulnerabilities in industrial control systems. |
-| 2026-03-05T16:00 | [AA26-065A: PRC State-Sponsored Cyber Actors Target Critical Infrastruc](https://www.cisa.gov/) | Joint advisory on PRC-affiliated actors pre-positioning for disruptive operations. |
+| 2026-03-05T16:00 | [AA26-065A: PRC State-Sponsored Cyber Actors Target Critical Infrastructure](https://www.cisa.gov/) | Joint advisory on PRC-affiliated actors pre-positioning for disruptive operations. |
 | 2026-03-03T14:00 | [Ransomware Advisory: Play Group Targeting Healthcare](https://www.cisa.gov/) | Advisory on Play ransomware group activities targeting healthcare sector. |
 | 2026-03-01T13:00 | [Updated Best Practices for Securing Cloud Environments](https://www.cisa.gov/) | Updated guidance on securing cloud environments against common attack patterns. |

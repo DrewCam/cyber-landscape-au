@@ -1,6 +1,6 @@
 # :material-database-alert: Notifiable Data Breaches (OAIC)
 
-**Last updated:** 2026-03-10 14:39 UTC
+**Last updated:** 2026-03-11 04:19 UTC
 
 Statistics from the [Office of the Australian Information Commissioner](https://www.oaic.gov.au/privacy/notifiable-data-breaches) Notifiable Data Breaches (NDB) scheme.
 

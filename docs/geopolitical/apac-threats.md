@@ -1,8 +1,8 @@
 # :material-account-alert: APAC Threat Actors
 
-**Last updated:** 2026-03-10 14:39 UTC
+**Last updated:** 2026-03-11 04:19 UTC | **Source: [MITRE ATT&CK](https://attack.mitre.org/groups/)**
 
-State-sponsored and advanced persistent threat (APT) groups with known activity targeting Australia, the Indo-Pacific, and Five Eyes nations.
+State-sponsored and advanced persistent threat (APT) groups with known activity targeting Australia, the Indo-Pacific, and Five Eyes nations. Data is automatically refreshed from MITRE ATT&CK on each build.
 
 !!! warning "Classification Note"
     Attribution of cyber operations to specific nation-states is inherently complex. The attributions listed here reflect publicly available reporting from government agencies and reputable threat intelligence firms.
@@ -14,10 +14,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | China / MSS (Hainan) |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Maritime, Defence, Government, Research |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Directly targeted Australian organisations. Subject of joint ASD advisory (2024). |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0065/) |
+| **MITRE Reference** | [G0065](https://attack.mitre.org/groups/G0065/) |
 
 ---
 
@@ -26,10 +28,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | China / MSS |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Government, Technology, Defence |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Targeted Australian Parliament (2019). Active against Five Eyes nations. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0128/) |
+| **MITRE Reference** | [G0128](https://attack.mitre.org/groups/G0128/) |
 
 ---
 
@@ -38,10 +42,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | China |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Government, NGOs, Telecommunications |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Active in Southeast Asia and Oceania. PlugX malware campaigns targeting APAC. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0129/) |
+| **MITRE Reference** | [G0129](https://attack.mitre.org/groups/G0129/) |
 
 ---
 
@@ -50,10 +56,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | China |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Critical Infrastructure, Communications, Energy |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Living-off-the-land techniques against Western critical infrastructure. Five Eyes joint advisory. |
-| **References** |  |
+| **MITRE Reference** |  |
 
 ---
 
@@ -62,10 +70,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | China |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Telecommunications, ISPs |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Compromised major telecommunications providers. Potential APAC impact. |
-| **References** |  |
+| **MITRE Reference** |  |
 
 ---
 
@@ -74,10 +84,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | China |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | IoT devices, Critical Infrastructure |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Botnet operations using compromised IoT. Disrupted by FBI (2024). |
-| **References** |  |
+| **MITRE Reference** |  |
 
 ---
 
@@ -88,10 +100,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | North Korea / RGB |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Government, Research, Think Tanks |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Targets APAC policy researchers and diplomats. Credential harvesting campaigns. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0094/) |
+| **MITRE Reference** | [G0094](https://attack.mitre.org/groups/G0094/) |
 
 ---
 
@@ -100,10 +114,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | North Korea / RGB |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Financial, Cryptocurrency, Defence |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Major cryptocurrency theft operations. Active against APAC financial institutions. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0032/) |
+| **MITRE Reference** | [G0032](https://attack.mitre.org/groups/G0032/) |
 
 ---
 
@@ -114,10 +130,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | Russia / GRU |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Government, Military, Media |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Global operations affecting Five Eyes partners. Active disinformation campaigns. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0007/) |
+| **MITRE Reference** | [G0007](https://attack.mitre.org/groups/G0007/) |
 
 ---
 
@@ -126,10 +144,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | Russia / SVR |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Government, Diplomatic, Technology |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | SolarWinds supply chain attack. Persistent targeting of Western government networks. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0016/) |
+| **MITRE Reference** | [G0016](https://attack.mitre.org/groups/G0016/) |
 
 ---
 
@@ -138,10 +158,12 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | Russia / GRU Unit 74455 |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Critical Infrastructure, Energy, Government |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Destructive attacks on critical infrastructure. NotPetya, Industroyer operations. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0034/) |
+| **MITRE Reference** | [G0034](https://attack.mitre.org/groups/G0034/) |
 
 ---
 
@@ -152,10 +174,16 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 | | |
 |---|---|
 | **Attribution** | India (suspected) |
+| **Also known as** | None listed |
 | **Status** | :material-alert-circle:{{ style='color: #ff5252' }} **Active** |
 | **Primary Targets** | Government, Military (Pakistan, China, SE Asia) |
+| **ATT&CK Techniques** | N/A |
 | **Australia Relevance** | Active in APAC region targeting government and military entities. |
-| **References** |  | [MITRE ATT&CK](https://attack.mitre.org/groups/G0121/) |
+| **MITRE Reference** | [G0121](https://attack.mitre.org/groups/G0121/) |
 
 ---
 
+
+**Total APAC-relevant groups tracked:** 12
+
+*Data sourced from [MITRE ATT&CK Enterprise](https://attack.mitre.org/) and enriched with Australian-specific context.*

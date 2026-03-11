@@ -6,7 +6,7 @@ hide:
 # :material-shield-alert: Australian Cyber Threat Landscape
 
 <div class="dashboard-meta" markdown>
-**Last updated:** 2026-03-10 14:39 UTC | **Auto-generated from live intelligence feeds**
+**Last updated:** 2026-03-11 04:19 UTC | **Auto-generated from live intelligence feeds**
 </div>
 
 ---
@@ -19,7 +19,7 @@ hide:
 
     ---
 
-    Active Advisories (ACSC, AusCERT, CISA)
+    Active Advisories (ACSC, Five Eyes CERTs, CISA)
 
     [:octicons-arrow-right-24: View advisories](threats/advisories.md)
 
@@ -70,11 +70,11 @@ hide:
 
 | CVE ID | CVSS | Description |
 |--------|------|-------------|
-| **CVE-2026-1234** | 9.8 | Heap-based buffer overflow in Fortinet FortiOS SSL-VPN allows remote code execut... |
-| **CVE-2026-0987** | 9.8 | Authentication bypass in SonicWall SMA 100 series allows unauthenticated attacke... |
-| **CVE-2026-0555** | 9.1 | Remote code execution in Apache Tomcat via deserialization of untrusted data in ... |
-| **CVE-2026-0888** | 9.8 | SQL injection in WordPress plugin allowing unauthenticated database access.... |
-| **CVE-2025-9876** | 9.0 | Server-side request forgery in Ivanti Connect Secure allows authenticated admin ... |
+| **CVE-2026-1234** | 9.8 | Heap-based buffer overflow in Fortinet FortiOS SSL-VPN allows remote code execution via crafted... |
+| **CVE-2026-0987** | 9.8 | Authentication bypass in SonicWall SMA 100 series allows unauthenticated attackers to gain... |
+| **CVE-2026-0555** | 9.1 | Remote code execution in Apache Tomcat via deserialization of untrusted data in session persistence. |
+| **CVE-2026-0888** | 9.8 | SQL injection in WordPress plugin allowing unauthenticated database access. |
+| **CVE-2025-9876** | 9.0 | Server-side request forgery in Ivanti Connect Secure allows authenticated admin to access... |
 
 
 [:octicons-arrow-right-24: Full vulnerability report](threats/vulnerabilities.md){ .md-button }
@@ -88,7 +88,7 @@ hide:
 | **APT40 (Leviathan)** | China / MSS (Hainan) | Maritime, Defence, Government, Research | :material-alert-circle:{ .active } |
 | **APT31 (Zirconium)** | China / MSS | Government, Technology, Defence | :material-alert-circle:{ .active } |
 | **Mustang Panda (Bronze President)** | China | Government, NGOs, Telecommunications | :material-alert-circle:{ .active } |
-| **Volt Typhoon** | China | Critical Infrastructure, Communications, | :material-alert-circle:{ .active } |
+| **Volt Typhoon** | China | Critical Infrastructure, Communications, Energy | :material-alert-circle:{ .active } |
 | **Salt Typhoon** | China | Telecommunications, ISPs | :material-alert-circle:{ .active } |
 
 
@@ -126,7 +126,7 @@ hide:
 ---
 
 <div class="data-sources-footer" markdown>
-**Data sources:** ASD/ACSC | AusCERT | CISA | NVD | abuse.ch (URLhaus, ThreatFox, MalwareBazaar) | AlienVault OTX | OAIC | ASPI | BleepingComputer
+**Data sources:** ASD/ACSC | CCCS (Canada) | NCSC (UK) | CISA | CISA ICS-CERT | NVD | abuse.ch (URLhaus, ThreatFox, MalwareBazaar) | AlienVault OTX | OAIC | ASPI | BleepingComputer
 
 [:octicons-arrow-right-24: View all data sources and methodology](sources.md)
 </div>

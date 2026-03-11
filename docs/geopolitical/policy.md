@@ -1,6 +1,6 @@
 # :material-gavel: Australian Cyber Policy & Legislation
 
-**Last updated:** 2026-03-10 14:39 UTC
+**Last updated:** 2026-03-11 04:19 UTC
 
 Key legislative and policy frameworks governing cybersecurity in Australia.
 
