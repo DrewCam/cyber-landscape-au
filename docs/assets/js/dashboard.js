@@ -42,7 +42,8 @@ function chartGridColor() {
 function baseOptions(title) {
   return {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
+    aspectRatio: 2.4,
     plugins: {
       title: {
         display: !!title,
@@ -97,13 +98,35 @@ function getSiteRoot() {
 
 async function loadData(filename) {
   const root = getSiteRoot();
-  const url = `${root}assets/data/${filename}`;
-  try {
-    const resp = await fetch(url);
-    if (resp.ok) return await resp.json();
-  } catch (e) { /* ignore */ }
-  console.warn(`Could not load ${filename} from ${url}`);
+  const candidates = [
+    `${root}assets/data/${filename}`,
+    `/assets/data/${filename}`,
+    `/cyber-landscape-au/assets/data/${filename}`,
+    new URL(`assets/data/${filename}`, window.location.href).toString(),
+  ];
+
+  for (const url of [...new Set(candidates)]) {
+    try {
+      const resp = await fetch(url, { cache: 'no-cache' });
+      if (resp.ok) return await resp.json();
+    } catch (e) {
+      // Continue trying fallback URLs.
+    }
+  }
+
+  console.warn(`Could not load ${filename} from any known path`, candidates);
   return null;
+}
+
+const chartInstances = new Map();
+
+function renderChart(canvas, config) {
+  const existing = chartInstances.get(canvas.id);
+  if (existing) existing.destroy();
+
+  const chart = new Chart(canvas, config);
+  chartInstances.set(canvas.id, chart);
+  return chart;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,7 +142,7 @@ async function renderNdbTrendChart(canvasId) {
   const trend = data.trend_summary.reverse(); // chronological
   const labels = trend.map(t => t.period);
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'bar',
     data: {
       labels: labels,
@@ -180,7 +203,7 @@ async function renderKevVendorChart() {
   const labels = vendors.map(v => v.vendor);
   const counts = vendors.map(v => v.count);
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'bar',
     data: {
       labels: labels,
@@ -226,7 +249,7 @@ async function renderCveSeverityChart() {
   const values = Object.values(dist);
   const colors = labels.map(l => severityColors[l] || CHART_COLORS.grey);
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'doughnut',
     data: {
       labels: labels,
@@ -239,7 +262,8 @@ async function renderCveSeverityChart() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: 2.4,
       plugins: {
         title: { display: true, text: 'CVE Severity Distribution (14 Days)', color: chartTextColor() },
         legend: { position: 'right', labels: { color: chartTextColor() } }
@@ -262,7 +286,7 @@ async function renderUrlhausThreatChart() {
   const labels = Object.keys(threats);
   const values = Object.values(threats);
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'pie',
     data: {
       labels: labels,
@@ -275,7 +299,8 @@ async function renderUrlhausThreatChart() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: 2.4,
       plugins: {
         title: { display: true, text: 'URLhaus Threat Types', color: chartTextColor() },
         legend: { position: 'right', labels: { color: chartTextColor() } }
@@ -298,7 +323,7 @@ async function renderMalwareFileTypeChart() {
   const labels = Object.keys(types);
   const values = Object.values(types);
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'bar',
     data: {
       labels: labels,
@@ -336,7 +361,7 @@ async function renderOtxCountryChart() {
     l === 'AU' ? CHART_COLORS.teal : CHART_COLORS.blue
   );
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'bar',
     data: {
       labels: labels,
@@ -366,7 +391,7 @@ async function renderNdbSectorChart() {
   const labels = sectors.map(s => s.sector);
   const values = sectors.map(s => s.count);
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'bar',
     data: {
       labels: labels,
@@ -403,7 +428,7 @@ async function renderShodanExposureChart() {
   const labels = results.map(r => r.name.replace('Australian ', '').replace(' exposed', ''));
   const values = results.map(r => r.count);
 
-  new Chart(canvas, {
+  renderChart(canvas, {
     type: 'bar',
     data: {
       labels: labels,
@@ -457,13 +482,18 @@ function initCharts() {
   renderShodanExposureChart();
 }
 
-// MkDocs Material loads extra_javascript at the end of <body>, so
-// DOMContentLoaded may have already fired by the time this script runs.
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    waitForChartJs(initCharts);
-  });
-} else {
-  // DOM already parsed; just wait for Chart.js CDN to finish loading
+function bootCharts() {
   waitForChartJs(initCharts);
+}
+
+// MkDocs Material instant navigation swaps page content without a full reload.
+// Re-run chart rendering after every navigation event.
+if (typeof document$ !== 'undefined' && document$.subscribe) {
+  document$.subscribe(() => {
+    bootCharts();
+  });
+} else if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootCharts);
+} else {
+  bootCharts();
 }
