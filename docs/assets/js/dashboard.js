@@ -128,7 +128,7 @@ async function renderNdbTrendChart(canvasId) {
   const data = await loadData('ndb.json');
   if (!data || !data.trend_summary) return;
 
-  const trend = data.trend_summary.reverse(); // chronological
+  const trend = data.trend_summary; // chronological months of the latest period
   const labels = trend.map(t => t.period);
 
   renderChart(canvas, {
@@ -157,10 +157,17 @@ async function renderNdbTrendChart(canvasId) {
           borderColor: CHART_COLORS.blue,
           borderWidth: 1,
         },
+        {
+          label: 'Other / Unknown',
+          data: trend.map(t => t.other || 0),
+          backgroundColor: CHART_COLORS.grey + '99',
+          borderColor: CHART_COLORS.grey,
+          borderWidth: 1,
+        },
       ]
     },
     options: {
-      ...baseOptions('Notifiable Data Breaches by Cause'),
+      ...baseOptions(`Notifiable Data Breaches by Month and Cause (${data.period || 'latest period'})`),
       scales: {
         x: {
           stacked: true,
@@ -374,9 +381,9 @@ async function renderNdbSectorChart() {
   if (!canvas) return;
 
   const data = await loadData('ndb.json');
-  if (!data || !data.detailed_periods || !data.detailed_periods[0]) return;
+  if (!data || !data.sectors) return;
 
-  const sectors = data.detailed_periods[0].top_sectors || [];
+  const sectors = data.sectors;
   const labels = sectors.map(s => s.sector);
   const values = sectors.map(s => s.count);
 

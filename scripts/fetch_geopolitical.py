@@ -1,15 +1,14 @@
 """
 Fetch geopolitical and strategic cyber intelligence:
-- MITRE ATT&CK groups (live, enriches threat actor profiles)
+- MITRE ATT&CK groups (threat actor profiles)
 - ASPI (Australian Strategic Policy Institute) RSS
 - BleepingComputer news (filtered for APAC/AU relevance)
-- Static reference data for Australian-specific context
 """
 import feedparser
 from datetime import datetime, timezone
 
 from .config import SOURCES
-from .utils import logger, save_data, fetch_url, truncate
+from .utils import logger, save_data, fetch_url, truncate, to_iso
 
 
 # APAC-relevant country keywords for filtering MITRE groups
@@ -23,77 +22,12 @@ _APAC_COUNTRIES = {
     "pakistan", "pakistani",
 }
 
-# Australian-specific context that MITRE doesn't have.
-# Keyed by mitre_id (intrusion-set--xxx) or by common name.
-_AU_RELEVANCE = {
-    "G0065": "Directly targeted Australian organisations. Subject of joint ASD advisory (2024).",
-    "G0128": "Targeted Australian Parliament (2019). Active against Five Eyes nations.",
-    "G0129": "Active in Southeast Asia and Oceania. PlugX malware campaigns targeting APAC.",
-    "G0094": "Targets APAC policy researchers and diplomats. Credential harvesting campaigns.",
-    "G0032": "Major cryptocurrency theft operations. Active against APAC financial institutions.",
-    "G0007": "Global operations affecting Five Eyes partners. Active disinformation campaigns.",
-    "G0016": "SolarWinds supply chain attack. Persistent targeting of Western government networks.",
-    "G0034": "Destructive attacks on critical infrastructure. NotPetya, Industroyer operations.",
-    "G0121": "Active in APAC region targeting government and military entities.",
-    # Groups without stable MITRE IDs yet (match by name fragment)
-    "Volt Typhoon": "Living-off-the-land techniques against Western critical infrastructure. Five Eyes joint advisory.",
-    "Salt Typhoon": "Compromised major telecommunications providers. Potential APAC impact.",
-    "Flax Typhoon": "Botnet operations using compromised IoT. Disrupted by FBI (2024).",
-}
-
-# Australian cyber policy reference data (static, updates infrequently)
-AU_CYBER_POLICY = [
-    {
-        "name": "Security of Critical Infrastructure Act 2018 (SOCI)",
-        "status": "Active (amended 2022)",
-        "scope": "11 critical infrastructure sectors",
-        "key_requirements": "Risk management programs, incident reporting (12/72hr), government assistance measures",
-        "link": "https://www.legislation.gov.au/C2018A00029/latest",
-    },
-    {
-        "name": "Australian Cyber Security Strategy 2023-2030",
-        "status": "Active",
-        "scope": "National cyber security posture",
-        "key_requirements": "Six shields framework, cyber resilience across economy",
-        "link": "https://www.homeaffairs.gov.au/cyber-security-subsite/files/2023-cyber-security-strategy.pdf",
-    },
-    {
-        "name": "Privacy Act 1988 (NDB Scheme)",
-        "status": "Active (NDB from Feb 2018)",
-        "scope": "Organisations with >$3M revenue, health, government",
-        "key_requirements": "Mandatory notification of eligible data breaches to OAIC and affected individuals",
-        "link": "https://www.legislation.gov.au/C2004A03712/latest",
-    },
-    {
-        "name": "Essential Eight Maturity Model",
-        "status": "Active (updated 2023)",
-        "scope": "Commonwealth entities (mandated), recommended for all",
-        "key_requirements": "Eight mitigation strategies across three maturity levels",
-        "link": "https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight",
-    },
-    {
-        "name": "Cyber Security Act 2024",
-        "status": "Active (from 2024)",
-        "scope": "Ransomware reporting, smart device security, Cyber Incident Review Board",
-        "key_requirements": "Mandatory ransomware payment reporting, security standards for IoT devices",
-        "link": "https://www.legislation.gov.au/C2024A00105/latest",
-    },
-    {
-        "name": "AUKUS Pillar II",
-        "status": "Active",
-        "scope": "Trilateral defence technology cooperation (AU/UK/US)",
-        "key_requirements": "Advanced cyber capabilities, AI, quantum technology sharing",
-        "link": "https://www.defence.gov.au/about/strategic-planning/aukus",
-    },
-]
-
 
 def fetch_mitre_threat_actors() -> list[dict]:
     """Fetch threat actor (intrusion-set) data from MITRE ATT&CK.
 
     Downloads the enterprise-attack STIX bundle from GitHub and extracts
-    groups relevant to APAC/Five Eyes targeting. Enriches with Australian-
-    specific relevance notes from our static reference data.
+    groups relevant to APAC/Five Eyes targeting.
     """
     logger.info("Fetching MITRE ATT&CK threat groups...")
     url = SOURCES.get("mitre_attack_enterprise", "")
@@ -157,17 +91,6 @@ def fetch_mitre_threat_actors() -> list[dict]:
         # Extract target sectors from description
         targets = _extract_targets(description)
 
-        # Look up Australian relevance
-        relevance = _AU_RELEVANCE.get(mitre_id, "")
-        if not relevance:
-            # Try matching by name fragment
-            for key, val in _AU_RELEVANCE.items():
-                if key in name:
-                    relevance = val
-                    break
-        if not relevance:
-            relevance = "APAC-relevant based on MITRE ATT&CK attribution and targeting data."
-
         # Check if revoked or deprecated
         if g.get("revoked") or g.get("x_mitre_deprecated"):
             continue
@@ -180,17 +103,15 @@ def fetch_mitre_threat_actors() -> list[dict]:
             "aliases": [a for a in aliases if a != name][:5],
             "attribution": attribution,
             "targets": targets,
-            "relevance": relevance,
             "mitre_id": mitre_id,
             "mitre_url": mitre_url,
             "description": truncate(description, 400),
             "technique_count": tech_count,
-            "active": not g.get("revoked", False),
             "last_modified": g.get("modified", ""),
             "source": "MITRE ATT&CK",
         })
 
-    # Sort by technique count (most active first)
+    # Sort by number of documented ATT&CK techniques
     apac_groups.sort(key=lambda x: x["technique_count"], reverse=True)
     logger.info(f"  MITRE ATT&CK: {len(apac_groups)} APAC-relevant groups")
     return apac_groups
@@ -288,7 +209,7 @@ def fetch_aspi_feed() -> list[dict]:
                     entries.append({
                         "title": entry.get("title", ""),
                         "link": entry.get("link", ""),
-                        "published": getattr(entry, "published", ""),
+                        "published": to_iso(entry.get("published") or entry.get("updated") or ""),
                         "summary": truncate(entry.get("summary", ""), 300),
                         "source": "ASPI",
                     })
@@ -305,7 +226,7 @@ def fetch_bleeping_computer() -> list[dict]:
     entries = []
 
     try:
-        resp = fetch_url(SOURCES["bom_cyber_news"])
+        resp = fetch_url(SOURCES["bleepingcomputer_rss"])
         if resp:
             feed = feedparser.parse(resp.content)
             for entry in feed.entries[:50]:
@@ -318,13 +239,15 @@ def fetch_bleeping_computer() -> list[dict]:
                     "china", "chinese", "russia", "russian",
                     "north korea", "critical infrastructure",
                     "apt", "state-sponsored", "ransomware",
-                    "zero-day", "supply chain", "telecom",
+                    "zero-day", "supply chain", "supply-chain", "telecom",
+                    "nation-state", "espionage", "spyware", "data breach",
+                    "japan", "korea", "taiwan", "india", "new zealand", "pacific",
                 ]
                 if any(kw in combined for kw in apac_keywords):
                     entries.append({
                         "title": entry.get("title", ""),
                         "link": entry.get("link", ""),
-                        "published": getattr(entry, "published", ""),
+                        "published": to_iso(entry.get("published") or entry.get("updated") or ""),
                         "summary": truncate(entry.get("summary", ""), 300),
                         "source": "BleepingComputer",
                     })
@@ -337,7 +260,6 @@ def fetch_bleeping_computer() -> list[dict]:
 
 def run():
     """Fetch all geopolitical/strategic data and save."""
-    # Live MITRE ATT&CK threat actors (replaces static list)
     threat_actors = fetch_mitre_threat_actors()
 
     aspi = fetch_aspi_feed()
@@ -348,7 +270,6 @@ def run():
     data = {
         "fetched_at": datetime.now(timezone.utc).isoformat(),
         "threat_actors": threat_actors,
-        "au_cyber_policy": AU_CYBER_POLICY,
         "news": all_news,
         "news_by_source": {
             "ASPI": len(aspi),
