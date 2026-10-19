@@ -36,6 +36,18 @@ def _date(value: str) -> str:
     return (value or "")[:10].replace("-", "‑")
 
 
+def _section_cards(cards: list[tuple[str, str, str, str]]) -> str:
+    """Material grid cards linking to a section's pages.
+
+    Each card is (icon, title, link, summary line built from live data).
+    """
+    out = '<div class="grid cards" markdown>\n\n'
+    for icon, title, link, summary in cards:
+        out += (f"-   :{icon}:{{ .lg .middle }} **{title}**\n\n    ---\n\n"
+                f"    {summary}\n\n    [:octicons-arrow-right-24: Open {title}]({link})\n\n")
+    return out + "</div>\n"
+
+
 def _build_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -215,37 +227,24 @@ def generate_threats_index():
     vulns = load_data("vulnerabilities.json") or {}
     threats = load_data("threats.json") or {}
 
-    content = f"""# :material-shield-alert: Threat Intelligence Overview
+    analysis = threats.get("analysis", {})
+    content = f"""# :material-shield-alert: Threat Intelligence
 
 **Last updated:** {_build_timestamp()}
 
-This section aggregates threat intelligence from Australian and international sources, providing a consolidated view of the current cyber threat environment relevant to Australia.
+Government advisories, exploited vulnerabilities and malware feeds relevant to Australia.
 
-## Data Sources
-
-| Source | Type | Coverage |
-|--------|------|----------|
-| ASD/ACSC | Government advisories | Australian-specific alerts and guidance |
-| CCCS (Canada) | Government CERT | Canadian Five Eyes partner advisories |
-| NCSC (UK) | Government CERT | UK Five Eyes partner threat reports |
-| CISA ICS-CERT | ICS advisories | Industrial control system security advisories |
-| CISA | US Government advisories | Global vulnerability and threat advisories |
-| NVD | Vulnerability database | CVE details with CVSS scoring |
-| CISA KEV | Exploited vulnerabilities | Confirmed actively exploited CVEs |
-| abuse.ch | Threat feeds | URLhaus, ThreatFox, MalwareBazaar |
-
-## Current Summary
-
-- **{advisories.get('total_count', 0)}** advisories published in the last 90 days across all sources
-- **{vulns.get('kev', {}).get('recent_30d', 0)}** new KEV entries in the last 30 days
-- **{vulns.get('recent_cves', {}).get('total', 0)}** new CVEs published in the last 14 days
-- **{threats.get('analysis', {}).get('urlhaus', {}).get('total', 0)}** recent malicious URLs tracked
-
-## Sections
-
-- [ACSC & CISA Advisories](advisories.md) : Government alerts and security advisories
-- [Vulnerabilities & KEV](vulnerabilities.md) : CVE tracking and exploited vulnerability catalog
-- [Malware & Threat Feeds](malware.md) : abuse.ch intelligence feeds
+""" + _section_cards([
+        ("material-bell-alert", "Security Advisories", "advisories.md",
+         f"**{advisories.get('total_count', 0)}** advisories from ASD/ACSC, Five Eyes CERTs and CISA in the last 90 days"),
+        ("material-bug", "Vulnerabilities & KEV", "vulnerabilities.md",
+         f"**{vulns.get('kev', {}).get('recent_30d', 0)}** new known exploited vulnerabilities in 30 days, "
+         f"**{vulns.get('recent_cves', {}).get('total', 0)}** recent CVEs"),
+        ("material-virus", "Malware & Threat Feeds", "malware.md",
+         f"**{analysis.get('urlhaus', {}).get('total', 0)}** malicious URLs, "
+         f"**{analysis.get('threatfox', {}).get('total', 0)}** IOCs from abuse.ch"),
+    ]) + """
+Source details are on the [Data Sources](../sources.md) page.
 """
     write_page("threats/index.md", content)
 
@@ -303,7 +302,7 @@ def generate_vulnerabilities_page():
     kev = data.get("kev", {})
     cves = data.get("recent_cves", {})
 
-    content = f"""# :material-bug: Vulnerabilities & Known Exploited Vulnerabilities
+    content = f"""# :material-bug: Vulnerabilities & KEV
 
 **Last updated:** {_build_timestamp()}
 
@@ -463,13 +462,21 @@ Data sourced from [abuse.ch](https://abuse.ch/) community threat intelligence pl
 def generate_osint_index():
     data = load_data("osint.json") or {}
     otx = data.get("otx_analysis", {})
+    shodan = (load_data("shodan.json") or {}).get("shodan", {})
 
-    content = f"""# :material-earth: OSINT Intelligence
+    content = f"""# :material-earth: OSINT
 
 **Last updated:** {_build_timestamp()}
 
-Open-source intelligence aggregated from community threat intelligence platforms and internet scanning services.
+Open-source intelligence from community threat intelligence platforms and internet scanning services.
 
+""" + _section_cards([
+        ("material-access-point-network", "Internet Exposure", "exposure.md",
+         f"Shodan exposure counts for **{shodan.get('au_total_hosts', 0):,}** indexed Australian hosts"),
+        ("material-fingerprint", "Indicators of Compromise", "iocs.md",
+         f"**{otx.get('total_pulses', 0)}** AlienVault OTX pulses, "
+         f"**{otx.get('australia_relevant_count', 0)}** Australia-relevant"),
+    ]) + f"""
 ## AlienVault OTX Summary
 
 | Metric | Value |
@@ -508,12 +515,6 @@ Open-source intelligence aggregated from community threat intelligence platforms
     for t in otx.get("top_tags", [])[:15]:
         content += f"| `{t['tag']}` | {t['count']} |\n"
 
-    content += """
-## Sections
-
-- [Internet Exposure](exposure.md) : Shodan exposure counts for Australian IP space and GreyNoise IP classification
-- [Indicators of Compromise](iocs.md) : Consolidated IOCs from OTX pulses
-"""
     write_page("osint/index.md", content)
 
 
@@ -523,7 +524,7 @@ def generate_exposure_page():
     shodan_data = load_data("shodan.json") or {}
     shodan = shodan_data.get("shodan", {})
 
-    content = f"""# :material-access-point-network: Internet Exposure & Scanning Trends
+    content = f"""# :material-access-point-network: Internet Exposure
 
 **Last updated:** {_build_timestamp()}
 
@@ -560,7 +561,7 @@ def generate_exposure_page():
     content += """
 ---
 
-## GreyNoise Internet Scanner Trends
+## GreyNoise IP Classification
 
 """
     if greynoise.get("available") is False:
@@ -634,23 +635,22 @@ def generate_geopolitical_index():
     data = load_data("geopolitical.json") or {}
     news = data.get("news", [])
 
-    content = f"""# :material-earth: Geopolitical Cyber Intelligence
+    content = f"""# :material-earth: Geopolitical
 
 **Last updated:** {_build_timestamp()}
 
-Strategic cyber intelligence relevant to Australia's geopolitical position in the Indo-Pacific region.
+Strategic cyber intelligence relevant to Australia's position in the Indo-Pacific region.
 
+""" + _section_cards([
+        ("material-account-alert", "APAC Threat Actors", "apac-threats.md",
+         f"**{len(data.get('threat_actors', []))}** state-linked groups from MITRE ATT&CK, grouped by country"),
+    ]) + """
 ## Latest Strategic & Cyber News
 
 """
     for n in news[:15]:
         content += f"- [{n['title']}]({n['link']}) *({n['source']}, {n.get('published', '')[:10]})*\n"
 
-    content += """
-## Sections
-
-- [APAC Threat Actors](apac-threats.md) : State-sponsored and advanced threat groups from MITRE ATT&CK
-"""
     write_page("geopolitical/index.md", content)
 
 
@@ -699,22 +699,8 @@ State-sponsored and advanced persistent threat (APT) groups from MITRE ATT&CK wh
 
 
 # ---------------------------------------------------------------------------
-# Compliance section
+# Data breaches
 # ---------------------------------------------------------------------------
-def generate_compliance_index():
-    content = f"""# :material-clipboard-check: Australian Compliance & Regulation
-
-**Last updated:** {_build_timestamp()}
-
-Breach reporting statistics for Australian organisations.
-
-## Sections
-
-- [Notifiable Data Breaches](ndb-stats.md) : OAIC NDB statistics for the latest reporting period
-"""
-    write_page("compliance/index.md", content)
-
-
 def generate_ndb_page():
     data = load_data("ndb.json") or {}
     period = data.get("period", "")
@@ -1004,7 +990,6 @@ def generate_all_pages():
     generate_iocs_page()
     generate_geopolitical_index()
     generate_apac_threats_page()
-    generate_compliance_index()
     generate_ndb_page()
     generate_sources_page()
 

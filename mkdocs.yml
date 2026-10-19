@@ -29,6 +29,10 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.top
+    - navigation.footer
+    - navigation.path
+    - navigation.instant
+    - navigation.instant.progress
     - navigation.indexes
     - toc.integrate
     - search.suggest
@@ -86,9 +90,7 @@ nav:
   - Geopolitical:
     - geopolitical/index.md
     - APAC Threat Actors: geopolitical/apac-threats.md
-  - Australian Compliance:
-    - compliance/index.md
-    - Notifiable Data Breaches: compliance/ndb-stats.md
+  - Data Breaches: compliance/ndb-stats.md
   - Data Sources: sources.md
 
 extra:
