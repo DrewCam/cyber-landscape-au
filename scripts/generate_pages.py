@@ -1,19 +1,13 @@
 """
 Generate MkDocs markdown pages from fetched data.
-Each page is templated from JSON data files using Jinja2.
+Each page is built from the JSON data files written by the fetchers.
 """
 import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from jinja2 import Environment, BaseLoader
-
 from .config import DOCS_DIR, DATA_DIR
 from .utils import logger, load_data
-
-
-env = Environment(loader=BaseLoader(), autoescape=False)
-env.filters["truncate"] = lambda s, n=200: (s[:n-3] + "...") if len(s) > n else s
 
 
 def truncate_text(value: str, limit: int) -> str:
@@ -68,7 +62,7 @@ def generate_index():
     adv_rows = ""
     for a in top_advisories:
         title = truncate_text(a.get("title", ""), 90)
-        adv_rows += f"| [{title}]({a['link']}) | {a['source']} | {a.get('published', '')[:16]} |\n"
+        adv_rows += f"| [{title}]({a['link']}) | {a['source']} | {a.get('published', '')[:10]} |\n"
 
     # Top 5 critical CVEs
     critical = recent_cves.get("critical", [])[:5]
@@ -191,7 +185,7 @@ hide:
 """
     news = geo.get("news", [])[:8]
     for n in news:
-        content += f"- [{n['title']}]({n['link']}) *({n['source']}, {n.get('published', '')[:16]})*\n"
+        content += f"- [{n['title']}]({n['link']}) *({n['source']}, {n.get('published', '')[:10]})*\n"
 
     content += f"""
 [:octicons-arrow-right-24: All geopolitical intelligence](geopolitical/index.md){{ .md-button }}
@@ -268,8 +262,15 @@ def generate_advisories_page():
     for source, count in by_source.items():
         content += f"| {source} | {count} |\n"
 
+    if not data.get("acsc_available", True):
+        content += """
+!!! warning "ASD/ACSC feeds unavailable this build"
+    cyber.gov.au did not respond to the build server, so ACSC items are not included.
+    See the latest directly at [cyber.gov.au](https://www.cyber.gov.au/).
+"""
+
     # Group by source
-    for source in ["ACSC Alerts", "ACSC Advisories", "ACSC Threats", "ACSC News", "ACSC Publications", "CCCS", "NCSC UK", "CISA", "CISA ICS"]:
+    for source in ["ACSC Alerts", "ACSC Advisories", "ACSC Publications", "CCCS", "NCSC UK", "CISA", "CISA ICS"]:
         source_items = [a for a in advisories if a["source"] == source]
         if not source_items:
             continue
@@ -277,7 +278,7 @@ def generate_advisories_page():
         content += f"\n## {source}\n\n"
         content += "| Date | Advisory | Summary |\n|------|----------|--------|\n"
         for a in source_items[:25]:
-            date = a.get("published", "")[:16]
+            date = a.get("published", "")[:10]
             title = truncate_text(a.get("title", ""), 100)
             summary = truncate_text(a.get("summary", "").replace("|", " ").replace("\n", " "), 140)
             content += f"| {date} | [{title}]({a['link']}) | {summary} |\n"
@@ -302,7 +303,7 @@ The KEV catalog tracks vulnerabilities confirmed to be actively exploited in the
 |--------|-------|
 | Total KEV entries | **{kev.get('total_kev', 0)}** |
 | Added in last 30 days | **{kev.get('recent_30d', 0)}** |
-| Overdue remediations | **{kev.get('overdue_count', 0)}** |
+| Known use in ransomware campaigns | **{kev.get('ransomware_count', 0)}** |
 
 ### Top Affected Vendors (KEV)
 
@@ -651,7 +652,7 @@ Strategic cyber intelligence relevant to Australia's geopolitical position in th
 
 """
     for n in news[:15]:
-        content += f"- [{n['title']}]({n['link']}) *({n['source']}, {n.get('published', '')[:16]})*\n"
+        content += f"- [{n['title']}]({n['link']}) *({n['source']}, {n.get('published', '')[:10]})*\n"
 
     content += """
 ## Sections
@@ -804,7 +805,7 @@ The [Essential Eight](https://www.cyber.gov.au/resources-business-and-government
 | 1 | **Application Control** | Prevent execution of unapproved/malicious programs |
 | 2 | **Patch Applications** | Remediate known application vulnerabilities |
 | 3 | **Configure Microsoft Office Macros** | Block macros from the internet, only allow vetted macros |
-| 4 | **User Application Hardening** | Block ads, Java, Flash, and unnecessary features in browsers |
+| 4 | **User Application Hardening** | Harden web browsers, Office and PDF software; block web ads and Java from the internet |
 
 ### Limit Extent of Cyber Incidents
 
@@ -914,7 +915,7 @@ Statistics from the [Office of the Australian Information Commissioner](https://
     content += f"""
 ---
 
-*Data sourced from [OAIC NDB publications]({data.get('source_url', '#')}). Updated when new OAIC reports are published.*
+*Data sourced from [OAIC NDB publications]({data.get('source_url', '#')}) and the OAIC NDB statistics dashboard. Where the OAIC reports only totals, malicious attacks and human error, system faults are shown as the remainder. Sector categories changed from Jul-Dec 2025, so sector comparisons with earlier periods are approximate. Updated manually when the OAIC releases new statistics.*
 """
     write_page("compliance/ndb-stats.md", content)
 
@@ -937,7 +938,7 @@ This dashboard is automatically generated by a Python data pipeline that:
 4. **Builds** the static site using MkDocs with the Material theme
 5. **Deploys** to GitHub Pages via GitHub Actions
 
-The pipeline runs on a scheduled basis (configurable via GitHub Actions cron) to keep data current.
+The pipeline runs daily via a GitHub Actions schedule (06:00 UTC) and on every push to `main`.
 
 ## Data Sources
 
@@ -945,16 +946,20 @@ The pipeline runs on a scheduled basis (configurable via GitHub Actions cron) to
 
 | Source | Type | URL | Update Frequency |
 |--------|------|-----|-----------------|
-| ASD/ACSC Alerts | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published |
-| ASD/ACSC Advisories | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published |
-| CCCS Advisories (Canada) | Atom Feed | [cyber.gc.ca](https://www.cyber.gc.ca/) | As published |
-| NCSC UK Reports | RSS Feed | [ncsc.gov.uk](https://www.ncsc.gov.uk/) | As published |
-| OAIC NDB Reports | Curated data | [oaic.gov.au](https://www.oaic.gov.au/) | Bi-annual |
+| ASD/ACSC Alerts | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published (best effort, see note) |
+| ASD/ACSC Advisories | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published (best effort, see note) |
+| ASD/ACSC Publications | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published (best effort, see note) |
+| OAIC NDB Statistics | Curated data | [oaic.gov.au](https://www.oaic.gov.au/) | Six-monthly |
+
+!!! note "ASD/ACSC availability"
+    cyber.gov.au often does not respond to requests from cloud build servers. The pipeline requests the official feeds directly; when the site is unreachable, ACSC items are omitted for that build rather than fetched through proxies or caches.
 
 ### International Government
 
 | Source | Type | URL | Update Frequency |
 |--------|------|-----|-----------------|
+| CCCS Advisories (Canada) | Atom Feed | [cyber.gc.ca](https://www.cyber.gc.ca/) | As published |
+| NCSC UK Reports | RSS Feed | [ncsc.gov.uk](https://www.ncsc.gov.uk/) | As published |
 | CISA Advisories | RSS Feed | [cisa.gov](https://www.cisa.gov/) | As published |
 | CISA ICS-CERT | RSS Feed | [cisa.gov](https://www.cisa.gov/cybersecurity-advisories/ics-advisories) | As published |
 | CISA KEV Catalog | JSON API | [cisa.gov](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | As updated |
@@ -1030,10 +1035,10 @@ Shodan indexes internet-facing devices and services globally. Used here to query
 
 1. Go to [https://account.shodan.io/register](https://account.shodan.io/register) and create an account
 2. Once logged in, your API key is shown on the [Account page](https://account.shodan.io/)
-3. The free tier provides basic search. A paid membership (one-time USD $49 for lifetime) unlocks filters like `country:AU`
+3. Search filters such as `country:AU` require a paid Shodan membership or API plan (see [Shodan pricing](https://www.shodan.io/store) for current plans)
 4. **GitHub Secret name:** `SHODAN_API_KEY`
 
-**Cost:** Free tier available. Lifetime membership recommended for country-level queries.
+**Cost:** Free account available; country-level queries need a paid membership or API plan.
 
 ### abuse.ch (URLhaus, ThreatFox, MalwareBazaar)
 

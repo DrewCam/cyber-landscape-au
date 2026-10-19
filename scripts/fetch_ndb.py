@@ -11,8 +11,61 @@ from .utils import logger, save_data
 
 # Curated NDB data from OAIC published reports
 # Source: https://www.oaic.gov.au/privacy/notifiable-data-breaches/notifiable-data-breaches-publications
+# From 2025 the OAIC publishes statistics via its NDB dashboard and a data.gov.au
+# spreadsheet instead of written six-monthly reports, and sector categories changed
+# in Jul-Dec 2025. Where the OAIC gives only a total, malicious and human-error
+# count, system faults are the remainder (NDB has exactly these three sources).
+# Last reviewed: October 2026.
 NDB_HISTORICAL = {
     "reporting_periods": [
+        {
+            "period": "Jul-Dec 2025",
+            "total_notifications": 670,
+            "malicious_attacks": 405,
+            "human_error": 194,
+            "system_faults": 35,
+            "top_sectors": [
+                {"sector": "Health service providers", "count": 128},
+                {"sector": "Finance (incl. superannuation)", "count": 83},
+                {"sector": "Business/professional associations", "count": 72},
+                {"sector": "Australian Government", "count": 51},
+            ],
+        },
+        {
+            "period": "Jan-Jun 2025",
+            "total_notifications": 532,
+            "malicious_attacks": 308,
+            "human_error": 193,
+            "system_faults": 31,
+        },
+        {
+            "period": "Jul-Dec 2024",
+            "total_notifications": 595,
+            "malicious_attacks": 404,
+            "human_error": 170,
+            "system_faults": 21,
+            "top_sectors": [
+                {"sector": "Health service providers", "count": 121},
+                {"sector": "Australian Government", "count": 100},
+                {"sector": "Finance (incl. superannuation)", "count": 54},
+                {"sector": "Legal, accounting, management", "count": 36},
+                {"sector": "Retail", "count": 34},
+            ],
+        },
+        {
+            "period": "Jan-Jun 2024",
+            "total_notifications": 527,
+            "malicious_attacks": 354,
+            "human_error": 156,
+            "system_faults": 17,
+            "top_sectors": [
+                {"sector": "Health service providers", "count": 102},
+                {"sector": "Australian Government", "count": 63},
+                {"sector": "Finance (incl. superannuation)", "count": 58},
+                {"sector": "Education", "count": 44},
+                {"sector": "Retail", "count": 29},
+            ],
+        },
         {
             "period": "Jul-Dec 2023",
             "total_notifications": 483,
@@ -173,6 +226,20 @@ NDB_HISTORICAL = {
             "records_affected": "12,900,000",
             "data_types": "Personal and health information, prescription data",
             "attack_type": "Ransomware",
+        },
+        {
+            "entity": "Genea",
+            "date": "February 2025",
+            "records_affected": "Unknown",
+            "data_types": "Patient personal and health information",
+            "attack_type": "Ransomware (Termite)",
+        },
+        {
+            "entity": "Qantas",
+            "date": "July 2025",
+            "records_affected": "5,700,000",
+            "data_types": "Customer names, email addresses, phone numbers, dates of birth, frequent flyer numbers",
+            "attack_type": "Social engineering of a third-party contact centre platform",
         },
     ],
 }

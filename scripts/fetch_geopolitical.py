@@ -9,7 +9,7 @@ import feedparser
 from datetime import datetime, timezone
 
 from .config import SOURCES
-from .utils import logger, save_data, fetch_url, truncate
+from .utils import logger, save_data, fetch_url, truncate, to_iso
 
 
 # APAC-relevant country keywords for filtering MITRE groups
@@ -45,23 +45,23 @@ _AU_RELEVANCE = {
 AU_CYBER_POLICY = [
     {
         "name": "Security of Critical Infrastructure Act 2018 (SOCI)",
-        "status": "Active (amended 2022)",
+        "status": "Active (amended 2022 and 2024)",
         "scope": "11 critical infrastructure sectors",
-        "key_requirements": "Risk management programs, incident reporting (12/72hr), government assistance measures",
+        "key_requirements": "Risk management programs, incident reporting (12/72hr), government assistance measures; 2024 amendments cover data storage systems and consequence management",
         "link": "https://www.legislation.gov.au/C2018A00029/latest",
     },
     {
         "name": "Australian Cyber Security Strategy 2023-2030",
-        "status": "Active",
+        "status": "Active (Horizon 2: 2026-2028)",
         "scope": "National cyber security posture",
         "key_requirements": "Six shields framework, cyber resilience across economy",
         "link": "https://www.homeaffairs.gov.au/cyber-security-subsite/files/2023-cyber-security-strategy.pdf",
     },
     {
         "name": "Privacy Act 1988 (NDB Scheme)",
-        "status": "Active (NDB from Feb 2018)",
-        "scope": "Organisations with >$3M revenue, health, government",
-        "key_requirements": "Mandatory notification of eligible data breaches to OAIC and affected individuals",
+        "status": "Active (NDB from Feb 2018; amended Dec 2024)",
+        "scope": "APP entities: Australian Government agencies, organisations with >$3M turnover, health service providers",
+        "key_requirements": "Mandatory notification of eligible data breaches to OAIC and affected individuals; Privacy and Other Legislation Amendment Act 2024 added a statutory tort for serious invasions of privacy and new OAIC penalty powers",
         "link": "https://www.legislation.gov.au/C2004A03712/latest",
     },
     {
@@ -73,9 +73,9 @@ AU_CYBER_POLICY = [
     },
     {
         "name": "Cyber Security Act 2024",
-        "status": "Active (from 2024)",
+        "status": "Active (ransomware payment reporting from 30 May 2025)",
         "scope": "Ransomware reporting, smart device security, Cyber Incident Review Board",
-        "key_requirements": "Mandatory ransomware payment reporting, security standards for IoT devices",
+        "key_requirements": "Report ransomware payments to ASD within 72 hours, security standards for smart devices, limited-use protections for information shared with ASD",
         "link": "https://www.legislation.gov.au/C2024A00105/latest",
     },
     {
@@ -288,7 +288,7 @@ def fetch_aspi_feed() -> list[dict]:
                     entries.append({
                         "title": entry.get("title", ""),
                         "link": entry.get("link", ""),
-                        "published": getattr(entry, "published", ""),
+                        "published": to_iso(entry.get("published") or entry.get("updated") or ""),
                         "summary": truncate(entry.get("summary", ""), 300),
                         "source": "ASPI",
                     })
@@ -305,7 +305,7 @@ def fetch_bleeping_computer() -> list[dict]:
     entries = []
 
     try:
-        resp = fetch_url(SOURCES["bom_cyber_news"])
+        resp = fetch_url(SOURCES["bleepingcomputer_rss"])
         if resp:
             feed = feedparser.parse(resp.content)
             for entry in feed.entries[:50]:
@@ -318,13 +318,15 @@ def fetch_bleeping_computer() -> list[dict]:
                     "china", "chinese", "russia", "russian",
                     "north korea", "critical infrastructure",
                     "apt", "state-sponsored", "ransomware",
-                    "zero-day", "supply chain", "telecom",
+                    "zero-day", "supply chain", "supply-chain", "telecom",
+                    "nation-state", "espionage", "spyware", "data breach",
+                    "japan", "korea", "taiwan", "india", "new zealand", "pacific",
                 ]
                 if any(kw in combined for kw in apac_keywords):
                     entries.append({
                         "title": entry.get("title", ""),
                         "link": entry.get("link", ""),
-                        "published": getattr(entry, "published", ""),
+                        "published": to_iso(entry.get("published") or entry.get("updated") or ""),
                         "summary": truncate(entry.get("summary", ""), 300),
                         "source": "BleepingComputer",
                     })

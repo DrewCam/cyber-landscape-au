@@ -7,6 +7,7 @@ Usage:
     python -m scripts.build_all          # Fetch everything + generate pages
     python -m scripts.build_all --skip-fetch  # Only regenerate pages from cached data
 """
+import os
 import sys
 import argparse
 import traceback
@@ -46,6 +47,55 @@ def fetch_all():
     return results
 
 
+def write_step_summary(results: dict):
+    """Write a per-source health table to the GitHub Actions job summary.
+
+    Fetchers log and continue on errors so one bad source doesn't block the
+    deploy; this makes those partial failures visible on the run page.
+    """
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not summary_path:
+        return
+
+    def count(data, *path):
+        for key in path:
+            if not isinstance(data, dict):
+                return 0
+            data = data.get(key)
+        return len(data) if isinstance(data, (list, dict)) else (data or 0)
+
+    rows = []
+    for name, r in results.items():
+        if r["status"] == "error":
+            rows.append(f"| {name} | :x: error | {r['error']} |")
+    data = {name: r.get("data") or {} for name, r in results.items()}
+    checks = [
+        ("ASD/ACSC feeds", "ACSC/Five Eyes CERTs/CISA Advisories",
+         lambda d: sum(v for k, v in d.get("by_source", {}).items() if k.startswith("ACSC"))),
+        ("Advisories (all sources)", "ACSC/Five Eyes CERTs/CISA Advisories", lambda d: d.get("total_count", 0)),
+        ("CISA KEV", "CISA KEV & NVD CVEs", lambda d: count(d, "kev", "total_kev")),
+        ("NVD recent CVEs", "CISA KEV & NVD CVEs", lambda d: count(d, "recent_cves", "total")),
+        ("URLhaus", "abuse.ch Threat Feeds", lambda d: count(d, "urlhaus_urls")),
+        ("ThreatFox", "abuse.ch Threat Feeds", lambda d: count(d, "threatfox_iocs")),
+        ("MalwareBazaar", "abuse.ch Threat Feeds", lambda d: count(d, "malwarebazaar_samples")),
+        ("OTX pulses", "OSINT (OTX, GreyNoise)", lambda d: count(d, "otx_pulses")),
+        ("MITRE ATT&CK groups", "Geopolitical Intelligence", lambda d: count(d, "threat_actors")),
+        ("News (ASPI + BleepingComputer)", "Geopolitical Intelligence", lambda d: count(d, "news")),
+        ("Shodan exposure queries", "Shodan Internet Exposure",
+         lambda d: count(d, "shodan", "exposure_results")),
+    ]
+    for label, fetcher, fn in checks:
+        if results.get(fetcher, {}).get("status") != "success":
+            continue
+        n = fn(data[fetcher])
+        status = ":white_check_mark:" if n else ":warning: empty"
+        rows.append(f"| {label} | {status} | {n} items |")
+
+    with open(summary_path, "a", encoding="utf-8") as f:
+        f.write("## Data source health\n\n| Source | Status | Detail |\n|---|---|---|\n")
+        f.write("\n".join(rows) + "\n")
+
+
 def generate_all():
     """Run the page generator."""
     logger.info(f"{'=' * 60}")
@@ -69,6 +119,7 @@ def main():
         succeeded = sum(1 for r in results.values() if r["status"] == "success")
         failed = sum(1 for r in results.values() if r["status"] == "error")
         logger.info(f"\nFetch summary: {succeeded} succeeded, {failed} failed")
+        write_step_summary(results)
     else:
         logger.info("Skipping data fetch (using cached data)")
 

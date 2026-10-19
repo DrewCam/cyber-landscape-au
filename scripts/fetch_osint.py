@@ -63,13 +63,12 @@ def fetch_otx_pulses() -> list[dict]:
     logger.info("Fetching AlienVault OTX pulses...")
 
     if not OTX_API_KEY:
-        logger.warning("  No OTX_API_KEY set, using public feed")
-        # Fetch public pulses
-        url = "https://otx.alienvault.com/api/v1/pulses/activity"
-        resp = fetch_url(url)
-    else:
-        headers = {"X-OTX-API-KEY": OTX_API_KEY}
-        resp = fetch_url(SOURCES["otx_pulses"], headers=headers, params={"limit": 50})
+        # OTX no longer serves pulses to unauthenticated clients
+        logger.warning("  No OTX_API_KEY set, skipping OTX")
+        return []
+
+    headers = {"X-OTX-API-KEY": OTX_API_KEY}
+    resp = fetch_url(SOURCES["otx_pulses"], headers=headers, params={"limit": 50})
 
     if not resp:
         return []

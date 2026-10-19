@@ -18,14 +18,6 @@ logging.basicConfig(
 logger = logging.getLogger("cyber-landscape")
 
 
-# Browser-like User-Agent for sites that block bot traffic (e.g. .gov.au)
-_BROWSER_UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/131.0.0.0 Safari/537.36"
-)
-
-
 def fetch_url(url: str, headers: dict = None, params: dict = None,
               method: str = "GET", json_body: dict = None,
               form_data: dict = None,
@@ -40,22 +32,8 @@ def fetch_url(url: str, headers: dict = None, params: dict = None,
                    over json_body if both are provided.
     """
     merged_headers = {**REQUEST_HEADERS, **(headers or {})}
-
-    # .gov.au sites block bot User-Agents from cloud IPs;
-    # use a browser UA and only retry once (let the feedparser fallback handle it)
-    is_gov_au = ".gov.au" in url
-    if is_gov_au:
-        merged_headers["User-Agent"] = _BROWSER_UA
-        merged_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-        merged_headers["Accept-Language"] = "en-AU,en;q=0.9"
-        if timeout is None:
-            timeout = 60
-        retries = min(retries, 1)  # fail fast, let feedparser fallback try
-    elif timeout is None:
-        if ".gov." in url:
-            timeout = 90
-        else:
-            timeout = REQUEST_TIMEOUT
+    if timeout is None:
+        timeout = REQUEST_TIMEOUT
 
     for attempt in range(retries):
         try:
@@ -114,8 +92,23 @@ def parse_date(date_str: str) -> datetime | None:
     from dateutil import parser as dateparser
     try:
         return dateparser.parse(date_str)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         return None
+
+
+def to_iso(date_str: str) -> str:
+    """Normalise a feed date (RFC 822, ISO 8601, etc.) to an ISO 8601 UTC string.
+
+    RSS dates like "Mon, 19 Oct 2026 ..." don't sort chronologically as
+    strings, so every fetcher stores dates in this form. Returns "" if the
+    date can't be parsed.
+    """
+    dt = parse_date(date_str) if date_str else None
+    if dt is None:
+        return ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).isoformat()
 
 
 def truncate(text: str, max_length: int = 200) -> str:

@@ -21,16 +21,13 @@ OTX_API_KEY = os.environ.get("OTX_API_KEY", "")
 GREYNOISE_API_KEY = os.environ.get("GREYNOISE_API_KEY", "")
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 ABUSE_CH_AUTH_KEY = os.environ.get("ABUSE_CH_AUTH_KEY", "")
-ACSC_FEED_URL = os.environ.get("ACSC_FEED_URL", "")  # Optional: Feeder.co JSON export URL
 
 # Data source URLs
 SOURCES = {
     # ASD / ACSC
     "acsc_alerts_rss": "https://www.cyber.gov.au/rss/alerts",
     "acsc_advisories_rss": "https://www.cyber.gov.au/rss/advisories",
-    "acsc_news_rss": "https://www.cyber.gov.au/rss/news",
     "acsc_publications_rss": "https://www.cyber.gov.au/rss/publications",
-    "acsc_threats_rss": "https://www.cyber.gov.au/rss/threats",
 
     # CISA
     "cisa_kev": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
@@ -65,13 +62,13 @@ SOURCES = {
 
     # Geopolitical / OSINT
     "aspi_rss": "https://www.aspistrategist.org.au/feed/",
-    "bom_cyber_news": "https://www.bleepingcomputer.com/feed/",
+    "bleepingcomputer_rss": "https://www.bleepingcomputer.com/feed/",
 }
 
 # Request settings
 REQUEST_TIMEOUT = 30
 REQUEST_HEADERS = {
-    "User-Agent": "CyberLandscapeAU/1.0 (Automated Threat Intelligence Aggregator)"
+    "User-Agent": "CyberLandscapeAU/1.1 (+https://github.com/DrewCam/cyber-landscape-au)"
 }
 
 # Data retention (days)

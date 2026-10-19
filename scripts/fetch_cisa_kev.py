@@ -2,6 +2,7 @@
 Fetch CISA Known Exploited Vulnerabilities (KEV) catalog
 and recent CVEs from the NVD API.
 """
+import time
 from datetime import datetime, timedelta, timezone
 from collections import Counter
 
@@ -32,18 +33,32 @@ def fetch_recent_cves(days: int = 14, max_results: int = 100) -> list[dict]:
     params = {
         "pubStartDate": start_date.strftime("%Y-%m-%dT00:00:00.000"),
         "pubEndDate": end_date.strftime("%Y-%m-%dT23:59:59.999"),
-        "resultsPerPage": max_results,
+        "resultsPerPage": 1,
     }
 
     headers = {}
     if NVD_API_KEY:
         headers["apiKey"] = NVD_API_KEY
 
+    # NVD returns results oldest-first, so read totalResults and then request
+    # the final page to get the most recently published CVEs.
+    resp = fetch_url(SOURCES["nvd_cve_api"], headers=headers, params=params)
+    if not resp:
+        return []
+    total = resp.json().get("totalResults", 0)
+    if not total:
+        return []
+
+    params["resultsPerPage"] = max_results
+    params["startIndex"] = max(total - max_results, 0)
+    # Unauthenticated NVD clients are limited to 5 requests per 30 seconds
+    time.sleep(1 if NVD_API_KEY else 6)
     resp = fetch_url(SOURCES["nvd_cve_api"], headers=headers, params=params)
     if not resp:
         return []
 
     data = resp.json()
+    logger.info(f"  NVD: {total} CVEs published in window, keeping latest {max_results}")
     cves = []
 
     for item in data.get("vulnerabilities", []):
@@ -54,11 +69,13 @@ def fetch_recent_cves(days: int = 14, max_results: int = 100) -> list[dict]:
         cvss_score = None
         cvss_severity = "UNKNOWN"
         metrics = cve.get("metrics", {})
-        for version in ["cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]:
+        for version in ["cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]:
             if version in metrics and metrics[version]:
                 cvss_data = metrics[version][0].get("cvssData", {})
                 cvss_score = cvss_data.get("baseScore")
-                cvss_severity = cvss_data.get("baseSeverity", "UNKNOWN")
+                # CVSS v2 keeps baseSeverity on the metric, not in cvssData
+                cvss_severity = (cvss_data.get("baseSeverity")
+                                 or metrics[version][0].get("baseSeverity", "UNKNOWN"))
                 break
 
         # Extract description
@@ -78,6 +95,7 @@ def fetch_recent_cves(days: int = 14, max_results: int = 100) -> list[dict]:
             "source": "NVD",
         })
 
+    cves.sort(key=lambda c: c["published"], reverse=True)
     logger.info(f"  NVD: {len(cves)} recent CVEs")
     return cves
 
@@ -89,21 +107,22 @@ def analyse_kev(kev_data: dict) -> dict:
     # Recent additions (last 30 days)
     cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
     recent = [v for v in vulns if v.get("dateAdded", "") >= cutoff]
+    recent.sort(key=lambda v: v.get("dateAdded", ""), reverse=True)
 
     # Top vendors
     vendor_counts = Counter(v.get("vendorProject", "Unknown") for v in vulns)
     top_vendors = vendor_counts.most_common(15)
 
-    # Overdue remediations
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    overdue = [v for v in vulns if v.get("dueDate", "9999") < today]
+    # Known use in ransomware campaigns (CISA flags these as "Known")
+    ransomware = [v for v in vulns if v.get("knownRansomwareCampaignUse") == "Known"]
 
     return {
         "total_kev": len(vulns),
+        "catalog_version": kev_data.get("catalogVersion", "unknown"),
         "recent_30d": len(recent),
         "recent_entries": recent[:20],
         "top_vendors": [{"vendor": v, "count": c} for v, c in top_vendors],
-        "overdue_count": len(overdue),
+        "ransomware_count": len(ransomware),
     }
 
 
