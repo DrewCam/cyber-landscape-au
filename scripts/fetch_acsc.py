@@ -8,10 +8,10 @@ is often unreachable from cloud runners), that source is simply reported as
 unavailable for this build; no proxies, spoofing or scraped caches are used.
 """
 import feedparser
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from .config import SOURCES
-from .utils import logger, save_data, fetch_url, truncate, to_iso
+from .config import SOURCES, MAX_DATA_AGE_DAYS
+from .utils import logger, save_data, fetch_url, truncate, to_iso, strip_html
 
 
 ACSC_FEEDS = [
@@ -37,11 +37,15 @@ def _fetch_feed(url: str, source: str, limit: int, **fetch_kwargs) -> list[dict]
     entries = []
     for entry in feed.entries[:limit]:
         published = entry.get("published") or entry.get("updated") or ""
+        # Some Atom feeds (e.g. CCCS) leave summary empty and put the text in content
+        summary = entry.get("summary") or ""
+        if not summary.strip() and entry.get("content"):
+            summary = entry["content"][0].get("value", "")
         entries.append({
             "title": entry.get("title", "Untitled"),
             "link": entry.get("link", ""),
             "published": to_iso(published),
-            "summary": truncate(entry.get("summary", ""), 300),
+            "summary": truncate(strip_html(summary), 300),
             "source": source,
         })
     logger.info(f"  {source}: {len(entries)} entries")
@@ -72,11 +76,16 @@ def run():
 
     logger.info("Fetching Five Eyes partner and CISA feeds...")
     cccs = _fetch_feed(SOURCES["cccs_advisories"], "CCCS", 50)
-    ncsc_uk = _fetch_feed(SOURCES["ncsc_uk_reports"], "NCSC UK", 30)
+    ncsc_uk = _fetch_feed(SOURCES["ncsc_uk_news"], "NCSC UK", 30)
     cisa = _fetch_feed(SOURCES["cisa_alerts_rss"], "CISA", 30)
     cisa_ics = _fetch_feed(SOURCES["cisa_ics_rss"], "CISA ICS", 30)
 
-    all_advisories = acsc + cccs + ncsc_uk + cisa + cisa_ics
+    # Keep only recent items; undated entries are dropped rather than shown as current
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=MAX_DATA_AGE_DAYS)).isoformat()
+    all_advisories = [
+        a for a in acsc + cccs + ncsc_uk + cisa + cisa_ics
+        if a.get("published", "") >= cutoff
+    ]
 
     # Sort by date (newest first); dates are ISO 8601 so string order is chronological
     all_advisories.sort(key=lambda x: x.get("published", ""), reverse=True)

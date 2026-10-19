@@ -31,6 +31,11 @@ def write_page(rel_path: str, content: str):
     logger.info(f"  Generated: {rel_path}")
 
 
+def _date(value: str) -> str:
+    """YYYY-MM-DD with non-breaking hyphens so table cells don't wrap mid-date."""
+    return (value or "")[:10].replace("-", "‑")
+
+
 def _build_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -62,7 +67,7 @@ def generate_index():
     adv_rows = ""
     for a in top_advisories:
         title = truncate_text(a.get("title", ""), 90)
-        adv_rows += f"| [{title}]({a['link']}) | {a['source']} | {a.get('published', '')[:10]} |\n"
+        adv_rows += f"| [{title}]({a['link']}) | {a['source']} | {_date(a.get('published', ''))} |\n"
 
     # Top 5 critical CVEs
     critical = recent_cves.get("critical", [])[:5]
@@ -106,7 +111,7 @@ hide:
 
     ---
 
-    Active Advisories (ACSC, Five Eyes CERTs, CISA)
+    Security advisories, last 90 days (ASD/ACSC, Five Eyes CERTs, CISA)
 
     [:octicons-arrow-right-24: View advisories](threats/advisories.md)
 
@@ -231,7 +236,7 @@ This section aggregates threat intelligence from Australian and international so
 
 ## Current Summary
 
-- **{advisories.get('total_count', 0)}** active advisories across all sources
+- **{advisories.get('total_count', 0)}** advisories published in the last 90 days across all sources
 - **{vulns.get('kev', {}).get('recent_30d', 0)}** new KEV entries in the last 30 days
 - **{vulns.get('recent_cves', {}).get('total', 0)}** new CVEs published in the last 14 days
 - **{threats.get('analysis', {}).get('urlhaus', {}).get('total', 0)}** recent malicious URLs tracked
@@ -276,12 +281,19 @@ def generate_advisories_page():
             continue
 
         content += f"\n## {source}\n\n"
-        content += "| Date | Advisory | Summary |\n|------|----------|--------|\n"
-        for a in source_items[:25]:
-            date = a.get("published", "")[:10]
+        items = source_items[:25]
+        has_summary = any(a.get("summary") for a in items)
+        if has_summary:
+            content += "| Date | Advisory | Summary |\n|------|----------|---------|\n"
+        else:
+            content += "| Date | Advisory |\n|------|----------|\n"
+        for a in items:
             title = truncate_text(a.get("title", ""), 100)
-            summary = truncate_text(a.get("summary", "").replace("|", " ").replace("\n", " "), 140)
-            content += f"| {date} | [{title}]({a['link']}) | {summary} |\n"
+            row = f"| {_date(a.get('published', ''))} | [{title}]({a['link']}) |"
+            if has_summary:
+                summary = truncate_text(a.get("summary", "").replace("|", " ").replace("\n", " "), 140)
+                row += f" {summary} |"
+            content += row + "\n"
 
     write_page("threats/advisories.md", content)
 
@@ -322,7 +334,7 @@ The KEV catalog tracks vulnerabilities confirmed to be actively exploited in the
 |-----|--------|---------|------------|----------|
 """
     for v in kev.get("recent_entries", [])[:20]:
-        content += f"| {v.get('cveID', '')} | {v.get('vendorProject', '')} | {v.get('product', '')} | {v.get('dateAdded', '')} | {v.get('dueDate', '')} |\n"
+        content += f"| {v.get('cveID', '')} | {v.get('vendorProject', '')} | {v.get('product', '')} | {_date(v.get('dateAdded', ''))} | {_date(v.get('dueDate', ''))} |\n"
 
     # Recent CVEs section
     severity = cves.get("severity_distribution", {})
@@ -662,41 +674,20 @@ State-sponsored and advanced persistent threat (APT) groups from MITRE ATT&CK wh
         country = a.get("attribution", "Unknown").split("/")[0].split("(")[0].strip()
         by_country.setdefault(country, []).append(a)
 
-    for country, group in by_country.items():
-        content += f"## {country}\n\n"
+    # One compact table per country (largest first); full profiles live on MITRE
+    for country, group in sorted(by_country.items(), key=lambda x: -len(x[1])):
+        content += f"## {country} ({len(group)})\n\n"
+        content += ("| Group | Also known as | Attribution | Primary Targets | Techniques | ATT&CK Updated |\n"
+                    "|-------|---------------|-------------|-----------------|------------|----------------|\n")
         for a in group:
             mitre_id = a.get("mitre_id", "")
-            mitre_link = ""
-            if mitre_id:
-                mitre_link = f"[{mitre_id}](https://attack.mitre.org/groups/{mitre_id}/)"
-            elif a.get("mitre_url"):
-                mitre_link = f"[MITRE ATT&CK]({a['mitre_url']})"
-
-            aliases = a.get("aliases", [])
-            alias_str = ", ".join(aliases[:4]) if aliases else "None listed"
-
-            tech_count = a.get("technique_count", 0)
-            tech_str = f"{tech_count} known techniques" if tech_count else "N/A"
-
-            content += f"""### {a['name']}
-
-| | |
-|---|---|
-| **Attribution** | {a.get('attribution', 'Unknown')} |
-| **Also known as** | {alias_str} |
-| **Primary Targets** | {a.get('targets', 'Multiple sectors')} |
-| **ATT&CK Techniques** | {tech_str} |
-| **ATT&CK Entry Updated** | {a.get('last_modified', '')[:10]} |
-| **MITRE Reference** | {mitre_link} |
-
-"""
-            # Add truncated description if available
-            desc = a.get("description", "")
-            if desc:
-                clean_desc = desc.replace("|", " ").replace("\n", " ")
-                content += f"> {clean_desc}\n\n"
-
-            content += "---\n\n"
+            url = f"https://attack.mitre.org/groups/{mitre_id}/" if mitre_id else a.get("mitre_url", "")
+            name = f"[{a['name']}]({url})" if url else a["name"]
+            aliases = ", ".join(a.get("aliases", [])[:3]) or "-"
+            content += (f"| **{name}** | {aliases} | {a.get('attribution', '')} | "
+                        f"{a.get('targets', '')} | {a.get('technique_count', 0) or '-'} | "
+                        f"{_date(a.get('last_modified', ''))} |\n")
+        content += "\n"
 
     content += f"""
 **Total APAC-relevant groups tracked:** {len(actors)}

@@ -52,7 +52,7 @@ SOURCES = {
 
     # Five Eyes partner CERTs (publicly accessible, no login required)
     "cccs_advisories": "https://cyber.gc.ca/api/cccs/atom/v1/get?feed=alerts_advisories",
-    "ncsc_uk_reports": "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml",
+    "ncsc_uk_news": "https://www.ncsc.gov.uk/api/1/services/v1/news-rss-feed.xml",
 
     # CISA ICS Advisories (critical infrastructure, relevant to SOCI Act)
     "cisa_ics_rss": "https://www.cisa.gov/cybersecurity-advisories/ics-advisories.xml",

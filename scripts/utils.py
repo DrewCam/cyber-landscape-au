@@ -1,8 +1,10 @@
 """
 Shared utilities for data fetching and processing.
 """
+import html
 import json
 import logging
+import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -109,6 +111,15 @@ def to_iso(date_str: str) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc).isoformat()
+
+
+def strip_html(text: str) -> str:
+    """Convert an HTML feed snippet to plain text with collapsed whitespace."""
+    if not text:
+        return ""
+    text = re.sub(r"<(script|style)\b.*?</\1>", " ", text, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    return re.sub(r"\s+", " ", html.unescape(text)).strip()
 
 
 def truncate(text: str, max_length: int = 200) -> str:

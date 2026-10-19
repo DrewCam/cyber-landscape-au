@@ -4,6 +4,8 @@ Fetch geopolitical and strategic cyber intelligence:
 - ASPI (Australian Strategic Policy Institute) RSS
 - BleepingComputer news (filtered for APAC/AU relevance)
 """
+import re
+
 import feedparser
 from datetime import datetime, timezone
 
@@ -11,23 +13,11 @@ from .config import SOURCES
 from .utils import logger, save_data, fetch_url, truncate, to_iso
 
 
-# APAC-relevant country keywords for filtering MITRE groups
-_APAC_COUNTRIES = {
-    "china", "chinese", "prc",
-    "russia", "russian", "gru", "svr", "fsb",
-    "north korea", "dprk", "korean",
-    "iran", "iranian", "irgc",
-    "india", "indian",
-    "vietnam", "vietnamese",
-    "pakistan", "pakistani",
-}
-
-
 def fetch_mitre_threat_actors() -> list[dict]:
     """Fetch threat actor (intrusion-set) data from MITRE ATT&CK.
 
-    Downloads the enterprise-attack STIX bundle from GitHub and extracts
-    groups relevant to APAC/Five Eyes targeting.
+    Downloads the enterprise-attack STIX bundle from GitHub and keeps groups
+    whose descriptions attribute them to a tracked country (see _ATTRIBUTION).
     """
     logger.info("Fetching MITRE ATT&CK threat groups...")
     url = SOURCES.get("mitre_attack_enterprise", "")
@@ -69,11 +59,10 @@ def fetch_mitre_threat_actors() -> list[dict]:
         name = g.get("name", "")
         description = g.get("description", "")
         aliases = g.get("aliases", [])
-        all_text = (name + " " + description + " " + " ".join(aliases)).lower()
 
-        # Check if group is APAC-relevant
-        is_apac = any(kw in all_text for kw in _APAC_COUNTRIES)
-        if not is_apac:
+        # Keep groups whose description ties them to one of the tracked countries
+        attribution = _extract_attribution(description, name)
+        if attribution == "Unknown":
             continue
 
         # Extract MITRE ATT&CK group ID (e.g. G0065) from external references
@@ -84,9 +73,6 @@ def fetch_mitre_threat_actors() -> list[dict]:
                 mitre_id = ref.get("external_id", "")
                 mitre_url = ref.get("url", "")
                 break
-
-        # Determine attribution from description
-        attribution = _extract_attribution(description, name)
 
         # Extract target sectors from description
         targets = _extract_targets(description)
@@ -117,43 +103,48 @@ def fetch_mitre_threat_actors() -> list[dict]:
     return apac_groups
 
 
-def _extract_attribution(description: str, name: str) -> str:
-    """Best-effort extraction of nation-state attribution from MITRE description."""
-    desc_lower = description.lower()
-    name_lower = name.lower()
-    combined = desc_lower + " " + name_lower
+# Country keywords and the agency names MITRE uses in group descriptions.
+# Matched as whole words; "pla" or "prc" would otherwise hit "platform", "practices".
+_ATTRIBUTION = [
+    ("China", ["china", "chinese", "prc"], [("MSS", ["mss"]), ("PLA", ["pla"])]),
+    ("Russia", ["russia", "russian"], [("GRU", ["gru"]), ("SVR", ["svr"]), ("FSB", ["fsb"])]),
+    ("North Korea", ["north korea", "north korean", "dprk", "democratic people's republic of korea"],
+     [("RGB", ["rgb", "reconnaissance general bureau"])]),
+    ("Iran", ["iran", "iranian"], [("IRGC", ["irgc"]), ("MOIS", ["mois"])]),
+    ("India", ["india", "indian"], []),
+    ("Vietnam", ["vietnam", "vietnamese"], []),
+    ("Pakistan", ["pakistan", "pakistani"], []),
+]
 
-    if any(kw in combined for kw in ["china", "chinese", "prc"]):
-        if "mss" in combined:
-            return "China / MSS"
-        if "pla" in combined:
-            return "China / PLA"
-        return "China"
-    if any(kw in combined for kw in ["russia", "russian"]):
-        if "gru" in combined:
-            return "Russia / GRU"
-        if "svr" in combined:
-            return "Russia / SVR"
-        if "fsb" in combined:
-            return "Russia / FSB"
-        return "Russia"
-    if any(kw in combined for kw in ["north korea", "dprk"]):
-        if "rgb" in combined or "reconnaissance general bureau" in combined:
-            return "North Korea / RGB"
-        return "North Korea"
-    if any(kw in combined for kw in ["iran", "iranian"]):
-        if "irgc" in combined:
-            return "Iran / IRGC"
-        if "mois" in combined:
-            return "Iran / MOIS"
-        return "Iran"
-    if any(kw in combined for kw in ["india", "indian"]):
-        return "India (suspected)"
-    if any(kw in combined for kw in ["vietnam", "vietnamese"]):
-        return "Vietnam"
-    if any(kw in combined for kw in ["pakistan", "pakistani"]):
-        return "Pakistan"
-    return "Unknown"
+
+def _first_match(text: str, keywords: list[str]) -> int | None:
+    """Position of the earliest whole-word keyword match, or None."""
+    positions = [m.start() for kw in keywords
+                 for m in [re.search(rf"\b{re.escape(kw)}\b", text)] if m]
+    return min(positions) if positions else None
+
+
+def _extract_attribution(description: str, name: str) -> str:
+    """Best-effort nation-state attribution from a MITRE group description.
+
+    MITRE descriptions open with the group's origin ("X is a North Korea-based
+    group...") and mention victim countries later, so the country named
+    earliest is taken as the attribution.
+    """
+    text = (description + " " + name).lower()
+    best = None
+    for country, keywords, agencies in _ATTRIBUTION:
+        pos = _first_match(text, keywords)
+        if pos is not None and (best is None or pos < best[0]):
+            best = (pos, country, agencies)
+    if best is None:
+        return "Unknown"
+
+    _, country, agencies = best
+    for agency, keywords in agencies:
+        if _first_match(text, keywords) is not None:
+            return f"{country} / {agency}"
+    return country
 
 
 def _extract_targets(description: str) -> str:

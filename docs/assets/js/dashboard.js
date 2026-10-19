@@ -118,6 +118,19 @@ async function loadData(filename) {
   return null;
 }
 
+// Track chart instances by canvas id so re-rendering after Material's instant
+// navigation destroys the old chart instead of stacking a new one on top.
+const chartInstances = new Map();
+
+function renderChart(canvas, config) {
+  const existing = chartInstances.get(canvas.id);
+  if (existing) existing.destroy();
+
+  const chart = new Chart(canvas, config);
+  chartInstances.set(canvas.id, chart);
+  return chart;
+}
+
 // ---------------------------------------------------------------------------
 // NDB Trend Chart (index page and NDB stats page)
 // ---------------------------------------------------------------------------
@@ -241,8 +254,10 @@ async function renderCveSeverityChart() {
     'UNKNOWN': CHART_COLORS.grey,
   };
 
-  const labels = Object.keys(dist);
-  const values = Object.values(dist);
+  // Most to least severe; UNKNOWN means NVD hasn't scored the CVE yet
+  const order = Object.keys(severityColors);
+  const labels = Object.keys(dist).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  const values = labels.map(l => dist[l]);
   const colors = labels.map(l => severityColors[l] || CHART_COLORS.grey);
 
   renderChart(canvas, {

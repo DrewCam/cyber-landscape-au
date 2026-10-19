@@ -144,3 +144,8 @@ canvas {
   opacity: 0.6;
   font-size: 0.85em;
 }
+
+/* Fit the four "At a Glance" cards on one row at desktop widths */
+.md-typeset .grid.cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
