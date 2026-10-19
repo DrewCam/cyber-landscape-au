@@ -47,8 +47,8 @@ SOURCES = {
     # GreyNoise (v3 API)
     "greynoise_community": "https://api.greynoise.io/v3/community/",
 
-    # OAIC Notifiable Data Breaches
-    "oaic_ndb": "https://www.oaic.gov.au/privacy/notifiable-data-breaches",
+    # OAIC Notifiable Data Breaches (official dataset via data.gov.au CKAN API)
+    "datagovau_package_show": "https://data.gov.au/data/api/3/action/package_show",
 
     # Five Eyes partner CERTs (publicly accessible, no login required)
     "cccs_advisories": "https://cyber.gc.ca/api/cccs/atom/v1/get?feed=alerts_advisories",

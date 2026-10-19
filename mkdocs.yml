@@ -76,7 +76,7 @@ nav:
   - Dashboard: index.md
   - Threat Intelligence:
     - threats/index.md
-    - ACSC Advisories: threats/advisories.md
+    - Security Advisories: threats/advisories.md
     - Vulnerabilities & KEV: threats/vulnerabilities.md
     - Malware & Threat Feeds: threats/malware.md
   - OSINT:
@@ -86,10 +86,8 @@ nav:
   - Geopolitical:
     - geopolitical/index.md
     - APAC Threat Actors: geopolitical/apac-threats.md
-    - Cyber Policy & Sanctions: geopolitical/policy.md
   - Australian Compliance:
     - compliance/index.md
-    - Essential Eight: compliance/essential-eight.md
     - Notifiable Data Breaches: compliance/ndb-stats.md
   - Data Sources: sources.md
 

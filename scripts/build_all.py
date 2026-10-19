@@ -81,6 +81,7 @@ def write_step_summary(results: dict):
         ("OTX pulses", "OSINT (OTX, GreyNoise)", lambda d: count(d, "otx_pulses")),
         ("MITRE ATT&CK groups", "Geopolitical Intelligence", lambda d: count(d, "threat_actors")),
         ("News (ASPI + BleepingComputer)", "Geopolitical Intelligence", lambda d: count(d, "news")),
+        ("OAIC NDB notifications", "OAIC NDB Statistics", lambda d: d.get("total", 0)),
         ("Shodan exposure queries", "Shodan Internet Exposure",
          lambda d: count(d, "shodan", "exposure_results")),
     ]

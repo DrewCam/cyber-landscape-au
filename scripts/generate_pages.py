@@ -71,19 +71,19 @@ def generate_index():
         description = truncate_text(c.get("description", ""), 100)
         cve_rows += f"| **{c['id']}** | {c.get('cvss_score', 'N/A')} | {description} |\n"
 
-    # NDB trend
-    ndb_trend = ndb.get("trend_summary", [])[:4]
+    # NDB breakdown for the latest OAIC reporting period
+    ndb_period = ndb.get("period", "")
     ndb_rows = ""
-    for t in ndb_trend:
-        ndb_rows += f"| {t['period']} | {t['total']} | {t['malicious']} | {t['human_error']} |\n"
+    for src, n in sorted(ndb.get("by_source", {}).items(), key=lambda x: -x[1]):
+        ndb_rows += f"| {src} | {n} |\n"
 
     # Top threat actors
     actors = geo.get("threat_actors", [])[:5]
     actor_rows = ""
     for a in actors:
-        status = ":material-alert-circle:{ .active }" if a.get("active") else ""
         targets = a.get("targets", "").rstrip(", ")
-        actor_rows += f"| **{a['name']}** | {a['attribution']} | {targets} | {status} |\n"
+        updated = a.get("last_modified", "")[:10]
+        actor_rows += f"| **{a['name']}** | {a['attribution']} | {targets} | {updated} |\n"
 
     content = f"""---
 hide:
@@ -160,18 +160,18 @@ hide:
 
 ## :material-account-alert: Key APAC Threat Actors
 
-| Actor | Attribution | Primary Targets | Active |
-|-------|-------------|----------------|--------|
+| Actor | Attribution | Primary Targets | ATT&CK Updated |
+|-------|-------------|----------------|----------------|
 {actor_rows}
 
 [:octicons-arrow-right-24: Full threat actor profiles](geopolitical/apac-threats.md){{ .md-button }}
 
 ---
 
-## :material-chart-line: Australian Data Breach Trends (OAIC NDB)
+## :material-chart-line: Australian Data Breaches (OAIC NDB, {ndb_period})
 
-| Period | Total | Malicious Attacks | Human Error |
-|--------|-------|-------------------|-------------|
+| Source of breach | Notifications |
+|------------------|---------------|
 {ndb_rows}
 
 <canvas id="ndbTrendChart" width="800" height="300"></canvas>
@@ -499,7 +499,7 @@ Open-source intelligence aggregated from community threat intelligence platforms
     content += """
 ## Sections
 
-- [Internet Exposure](exposure.md) : GreyNoise scanning trends and internet-facing asset analysis
+- [Internet Exposure](exposure.md) : Shodan exposure counts for Australian IP space and GreyNoise IP classification
 - [Indicators of Compromise](iocs.md) : Consolidated IOCs from OTX pulses
 """
     write_page("osint/index.md", content)
@@ -555,30 +555,10 @@ def generate_exposure_page():
         content += """!!! info "API Key Required"
     Set the `GREYNOISE_API_KEY` environment variable to enable live GreyNoise data.
     See the [API Key Setup Guide](../sources.md#api-key-setup-guide) for details.
-
-GreyNoise classifies internet-wide scanning traffic as either **benign** (known security scanners, search engines) or **malicious/unknown** (botnets, exploit scanners, reconnaissance).
-
-When enabled, this section shows top scanning ports, scanner classifications, geographic distribution, and trending CVE exploitation.
 """
     else:
-        content += "GreyNoise data is available. See charts below.\n\n"
         content += f"```json\n{json.dumps(greynoise, indent=2)[:2000]}\n```\n"
 
-    content += """
----
-
-## Recommended OSINT Tools for Australian Practitioners
-
-| Tool | Type | Access |
-|------|------|--------|
-| [Shodan](https://www.shodan.io/) | Internet-facing device search | Free tier + paid |
-| [Censys](https://search.censys.io/) | Internet asset discovery | Free tier + paid |
-| [GreyNoise](https://viz.greynoise.io/) | Internet scanning analysis | Free community |
-| [SecurityTrails](https://securitytrails.com/) | DNS and domain intelligence | Free tier + paid |
-| [URLScan.io](https://urlscan.io/) | Website scanning and analysis | Free |
-| [VirusTotal](https://www.virustotal.com/) | File and URL analysis | Free tier + paid |
-| [AbuseIPDB](https://www.abuseipdb.com/) | IP reputation checking | Free tier + paid |
-"""
     write_page("osint/exposure.md", content)
 
 
@@ -657,8 +637,7 @@ Strategic cyber intelligence relevant to Australia's geopolitical position in th
     content += """
 ## Sections
 
-- [APAC Threat Actors](apac-threats.md) : State-sponsored and advanced threat groups targeting Australia and the Indo-Pacific
-- [Cyber Policy & Sanctions](policy.md) : Australian cyber legislation and international policy frameworks
+- [APAC Threat Actors](apac-threats.md) : State-sponsored and advanced threat groups from MITRE ATT&CK
 """
     write_page("geopolitical/index.md", content)
 
@@ -671,10 +650,10 @@ def generate_apac_threats_page():
 
 **Last updated:** {_build_timestamp()} | **Source: [MITRE ATT&CK](https://attack.mitre.org/groups/)**
 
-State-sponsored and advanced persistent threat (APT) groups with known activity targeting Australia, the Indo-Pacific, and Five Eyes nations. Data is automatically refreshed from MITRE ATT&CK on each build.
+State-sponsored and advanced persistent threat (APT) groups from MITRE ATT&CK whose descriptions link them to China, Russia, North Korea, Iran, India, Vietnam or Pakistan. Data is refreshed from MITRE ATT&CK on each build.
 
-!!! warning "Classification Note"
-    Attribution of cyber operations to specific nation-states is inherently complex. The attributions listed here reflect publicly available reporting from government agencies and reputable threat intelligence firms.
+!!! note "Method"
+    Groups are selected and attributed automatically by matching country and agency keywords in each group's MITRE ATT&CK description. Target sectors are extracted the same way. Read the linked MITRE entry for the full sourced reporting.
 
 """
     # Group by attribution country
@@ -693,8 +672,6 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
             elif a.get("mitre_url"):
                 mitre_link = f"[MITRE ATT&CK]({a['mitre_url']})"
 
-            status = ":material-alert-circle:{{ style='color: #ff5252' }} **Active**" if a.get("active") else "Inactive"
-
             aliases = a.get("aliases", [])
             alias_str = ", ".join(aliases[:4]) if aliases else "None listed"
 
@@ -707,10 +684,9 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
 |---|---|
 | **Attribution** | {a.get('attribution', 'Unknown')} |
 | **Also known as** | {alias_str} |
-| **Status** | {status} |
 | **Primary Targets** | {a.get('targets', 'Multiple sectors')} |
 | **ATT&CK Techniques** | {tech_str} |
-| **Australia Relevance** | {a.get('relevance', '')} |
+| **ATT&CK Entry Updated** | {a.get('last_modified', '')[:10]} |
 | **MITRE Reference** | {mitre_link} |
 
 """
@@ -725,50 +701,10 @@ State-sponsored and advanced persistent threat (APT) groups with known activity 
     content += f"""
 **Total APAC-relevant groups tracked:** {len(actors)}
 
-*Data sourced from [MITRE ATT&CK Enterprise](https://attack.mitre.org/) and enriched with Australian-specific context.*
+*Data sourced from [MITRE ATT&CK Enterprise](https://attack.mitre.org/).*
 """
 
     write_page("geopolitical/apac-threats.md", content)
-
-
-def generate_policy_page():
-    data = load_data("geopolitical.json") or {}
-    policies = data.get("au_cyber_policy", [])
-
-    content = f"""# :material-gavel: Australian Cyber Policy & Legislation
-
-**Last updated:** {_build_timestamp()}
-
-Key legislative and policy frameworks governing cybersecurity in Australia.
-
-"""
-    for p in policies:
-        content += f"""## {p['name']}
-
-| | |
-|---|---|
-| **Status** | {p['status']} |
-| **Scope** | {p['scope']} |
-| **Key Requirements** | {p['key_requirements']} |
-| **Reference** | [{p['name']}]({p['link']}) |
-
----
-
-"""
-
-    content += """## International Frameworks
-
-Australia participates in several international cyber cooperation frameworks:
-
-| Framework | Partners | Focus |
-|-----------|----------|-------|
-| Five Eyes | AU, US, UK, CA, NZ | Intelligence sharing, joint advisories |
-| AUKUS Pillar II | AU, UK, US | Advanced cyber capabilities, quantum, AI |
-| Quad Cyber | AU, US, India, Japan | Indo-Pacific cyber resilience |
-| ASEAN Regional Forum | ASEAN + partners | Regional cyber confidence building |
-| Budapest Convention | 60+ countries | Cybercrime cooperation |
-"""
-    write_page("geopolitical/policy.md", content)
 
 
 # ---------------------------------------------------------------------------
@@ -779,143 +715,104 @@ def generate_compliance_index():
 
 **Last updated:** {_build_timestamp()}
 
-Cybersecurity compliance landscape for Australian organisations, including mandated frameworks and breach reporting obligations.
+Breach reporting statistics for Australian organisations.
 
 ## Sections
 
-- [Essential Eight](essential-eight.md) : ASD's Essential Eight mitigation strategies and maturity model
-- [Notifiable Data Breaches](ndb-stats.md) : OAIC NDB statistics and trend analysis
+- [Notifiable Data Breaches](ndb-stats.md) : OAIC NDB statistics for the latest reporting period
 """
     write_page("compliance/index.md", content)
 
 
-def generate_essential_eight_page():
-    content = f"""# :material-shield-check: ASD Essential Eight Maturity Model
-
-**Last updated:** {_build_timestamp()}
-
-The [Essential Eight](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight) is a set of baseline mitigation strategies from the Australian Signals Directorate (ASD), recommended for all Australian organisations and mandated for Commonwealth entities.
-
-## The Eight Strategies
-
-### Prevent Malware Delivery and Execution
-
-| # | Strategy | Purpose |
-|---|----------|---------|
-| 1 | **Application Control** | Prevent execution of unapproved/malicious programs |
-| 2 | **Patch Applications** | Remediate known application vulnerabilities |
-| 3 | **Configure Microsoft Office Macros** | Block macros from the internet, only allow vetted macros |
-| 4 | **User Application Hardening** | Harden web browsers, Office and PDF software; block web ads and Java from the internet |
-
-### Limit Extent of Cyber Incidents
-
-| # | Strategy | Purpose |
-|---|----------|---------|
-| 5 | **Restrict Administrative Privileges** | Limit admin access to only those who need it |
-| 6 | **Patch Operating Systems** | Remediate known OS vulnerabilities |
-| 7 | **Multi-factor Authentication** | Protect against credential theft and reuse |
-
-### Recover Data and System Availability
-
-| # | Strategy | Purpose |
-|---|----------|---------|
-| 8 | **Regular Backups** | Ensure data and systems can be recovered |
-
-## Maturity Levels
-
-| Level | Description |
-|-------|-------------|
-| **Maturity Level Zero** | Weaknesses in overall cyber security posture |
-| **Maturity Level One** | Partly aligned, focus on adversaries using commodity tradecraft |
-| **Maturity Level Two** | Aligned to mitigate adversaries operating with moderate investment |
-| **Maturity Level Three** | Fully aligned, mitigates adversaries who are more adaptive and less reliant on public tooling |
-
-!!! tip "Assessment"
-    Organisations can self-assess their Essential Eight maturity using the [Essential Eight Assessment Process Guide](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight/essential-eight-assessment-process-guide).
-
-## Key Updates
-
-- **November 2023**: Updated to include revised maturity levels and control requirements
-- **Mandated**: All non-corporate Commonwealth entities must implement to at least Maturity Level Two
-- **PSPF Alignment**: Maps to the Protective Security Policy Framework (PSPF) requirements
-"""
-    write_page("compliance/essential-eight.md", content)
-
-
 def generate_ndb_page():
     data = load_data("ndb.json") or {}
-    trend = data.get("trend_summary", [])
-    breaches = data.get("notable_breaches", [])
-    periods = data.get("detailed_periods", [])
+    period = data.get("period", "")
 
     content = f"""# :material-database-alert: Notifiable Data Breaches (OAIC)
 
 **Last updated:** {_build_timestamp()}
 
-Statistics from the [Office of the Australian Information Commissioner](https://www.oaic.gov.au/privacy/notifiable-data-breaches) Notifiable Data Breaches (NDB) scheme.
+Statistics from the [Office of the Australian Information Commissioner](https://www.oaic.gov.au/privacy/notifiable-data-breaches) Notifiable Data Breaches (NDB) scheme, read from the OAIC's [official dataset]({data.get('source_url', '#')}) on data.gov.au.
 
-## Trend Overview
+"""
+    if not data.get("total"):
+        content += """!!! warning "OAIC dataset unavailable this build"
+    The NDB dataset could not be retrieved from data.gov.au.
+"""
+        write_page("compliance/ndb-stats.md", content)
+        return
+
+    content += f"""## {period}: {data['total']} notifications
+
+| Source of breach | Notifications |
+|------------------|---------------|
+"""
+    for src, n in sorted(data.get("by_source", {}).items(), key=lambda x: -x[1]):
+        content += f"| {src} | **{n}** |\n"
+
+    content += """
+### Notifications by Month
 
 <canvas id="ndbDetailChart" width="800" height="400"></canvas>
 
-| Period | Total | Malicious Attacks | Human Error | System Faults |
-|--------|-------|-------------------|-------------|---------------|
+| Month | Total | Malicious Attacks | Human Error | System Faults | Other / Unknown |
+|-------|-------|-------------------|-------------|---------------|-----------------|
 """
-    for t in trend:
-        content += f"| {t['period']} | **{t['total']}** | {t['malicious']} | {t['human_error']} | {t['system_faults']} |\n"
+    for t in data.get("trend_summary", []):
+        content += f"| {t['period']} | **{t['total']}** | {t['malicious']} | {t['human_error']} | {t['system_faults']} | {t['other']} |\n"
 
-    # Detailed breakdown for most recent period
-    if periods:
-        latest = periods[0]
-        content += f"""
-## Latest Period: {latest['period']}
-
+    sectors = data.get("sectors", [])
+    if sectors:
+        content += """
 ### Top Affected Sectors
 
 <canvas id="ndbSectorChart" width="600" height="300"></canvas>
 
-| Sector | Notifications |
-|--------|--------------|
+| Sector | Notifications | Malicious | Human Error |
+|--------|---------------|-----------|-------------|
 """
-        for s in latest.get("top_sectors", []):
-            content += f"| {s['sector']} | {s['count']} |\n"
+        for s in sectors:
+            by_src = s.get("by_source", {})
+            content += (f"| {s['sector']} | **{s['count']}** | "
+                        f"{by_src.get('Malicious or criminal attack', 0)} | {by_src.get('Human error', 0)} |\n")
 
-        if "breach_types" in latest:
-            content += """
-### Breach Types
+    specific = data.get("specific_sources", [])
+    if specific:
+        content += """
+### Specific Sources of Breaches
 
-| Type | Count |
-|------|-------|
+| Category | Source | Notifications |
+|----------|--------|---------------|
 """
-            for bt, count in latest["breach_types"].items():
-                label = bt.replace("_", " ").title()
-                content += f"| {label} | {count} |\n"
+        for s in sorted(specific, key=lambda x: -x["count"]):
+            content += f"| {s['category']} | {s['source']} | {s['count']} |\n"
 
-        if "individuals_affected" in latest:
-            content += """
-### Scale of Breaches (Individuals Affected)
+    kinds = data.get("personal_information", [])
+    if kinds:
+        content += """
+### Kinds of Personal Information Involved
+
+| Kind | Notifications |
+|------|---------------|
+"""
+        for k in kinds:
+            content += f"| {k['kind']} | {k['count']} |\n"
+
+    scale = data.get("individuals_affected", [])
+    if scale:
+        content += """
+### Individuals Affected (World-wide)
 
 | Range | Notifications |
-|-------|--------------|
+|-------|---------------|
 """
-            for range_str, count in latest["individuals_affected"].items():
-                content += f"| {range_str} | {count} |\n"
-
-    content += """
----
-
-## Notable Australian Data Breaches
-
-| Entity | Date | Records | Attack Type |
-|--------|------|---------|-------------|
-"""
-    for b in breaches:
-        content += f"| **{b['entity']}** | {b['date']} | {b['records_affected']} | {b['attack_type']} |\n"
+        for r in scale:
+            content += f"| {r['range']} | {r['count']} |\n"
 
     content += f"""
 ---
 
-*Data sourced from [OAIC NDB publications]({data.get('source_url', '#')}) and the OAIC NDB statistics dashboard. Where the OAIC reports only totals, malicious attacks and human error, system faults are shown as the remainder. Sector categories changed from Jul-Dec 2025, so sector comparisons with earlier periods are approximate. Updated manually when the OAIC releases new statistics.*
+*Source: [{data.get('resource_name', 'OAIC NDB dataset')}]({data.get('resource_url', '#')}), published by the OAIC on data.gov.au. Earlier periods are available from the [OAIC NDB publications](https://www.oaic.gov.au/privacy/notifiable-data-breaches/notifiable-data-breaches-publications).*
 """
     write_page("compliance/ndb-stats.md", content)
 
@@ -949,7 +846,7 @@ The pipeline runs daily via a GitHub Actions schedule (06:00 UTC) and on every p
 | ASD/ACSC Alerts | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published (best effort, see note) |
 | ASD/ACSC Advisories | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published (best effort, see note) |
 | ASD/ACSC Publications | RSS Feed | [cyber.gov.au](https://www.cyber.gov.au/) | As published (best effort, see note) |
-| OAIC NDB Statistics | Curated data | [oaic.gov.au](https://www.oaic.gov.au/) | Six-monthly |
+| OAIC NDB Statistics | XLSX dataset (CKAN API) | [data.gov.au](https://data.gov.au/data/dataset/notifiable-data-breaches-ndb-scheme) | Six-monthly |
 
 !!! note "ASD/ACSC availability"
     cyber.gov.au often does not respond to requests from cloud build servers. The pipeline requests the official feeds directly; when the site is unreachable, ACSC items are omitted for that build rather than fetched through proxies or caches.
@@ -1066,7 +963,6 @@ In your repository:
 graph LR
     A[RSS Feeds] --> D[Python Fetchers]
     B[REST APIs] --> D
-    C[Curated Data] --> D
     D --> E[JSON Data Files]
     E --> F[Page Generator]
     F --> G[MkDocs Markdown]
@@ -1117,9 +1013,7 @@ def generate_all_pages():
     generate_iocs_page()
     generate_geopolitical_index()
     generate_apac_threats_page()
-    generate_policy_page()
     generate_compliance_index()
-    generate_essential_eight_page()
     generate_ndb_page()
     generate_sources_page()
 
