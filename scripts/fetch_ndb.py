@@ -232,14 +232,14 @@ NDB_HISTORICAL = {
             "date": "February 2025",
             "records_affected": "Unknown",
             "data_types": "Patient personal and health information",
-            "attack_type": "Ransomware (Termite)",
+            "attack_type": "Ransomware (claimed by Termite)",
         },
         {
             "entity": "Qantas",
             "date": "July 2025",
             "records_affected": "5,700,000",
-            "data_types": "Customer names, email addresses, phone numbers, dates of birth, frequent flyer numbers",
-            "attack_type": "Social engineering of a third-party contact centre platform",
+            "data_types": "Names, email addresses, frequent flyer numbers; for a subset, addresses, dates of birth and phone numbers",
+            "attack_type": "Unauthorised access to a third-party call centre customer servicing platform",
         },
     ],
 }
