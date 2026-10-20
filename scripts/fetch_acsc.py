@@ -3,9 +3,9 @@ Fetch advisories, alerts and publications from ASD/ACSC, Five Eyes partner
 CERTs (CCCS, NCSC UK), CISA, and CISA ICS-CERT RSS/Atom feeds.
 
 All feeds are fetched directly from the publisher's official endpoint with an
-honest, identifiable User-Agent. If a publisher refuses or times out (cyber.gov.au
-is often unreachable from cloud runners), that source is simply reported as
-unavailable for this build; no proxies, spoofing or scraped caches are used.
+honest, identifiable User-Agent. If a publisher refuses or times out, that
+source is simply reported as unavailable for this build; no proxies,
+browser impersonation or scraped caches are used.
 """
 import feedparser
 from datetime import datetime, timedelta, timezone
@@ -13,6 +13,10 @@ from datetime import datetime, timedelta, timezone
 from .config import SOURCES, MAX_DATA_AGE_DAYS
 from .utils import logger, save_data, fetch_url, truncate, to_iso, strip_html
 
+
+# cyber.gov.au's CDN stalls requests whose User-Agent contains a URL (while
+# cisa.gov rejects requests without one), so ASD feeds get the plain project name.
+ACSC_HEADERS = {"User-Agent": "CyberLandscapeAU/1.1"}
 
 ACSC_FEEDS = [
     ("ACSC Alerts", "acsc_alerts_rss"),
@@ -55,14 +59,13 @@ def _fetch_feed(url: str, source: str, limit: int, **fetch_kwargs) -> list[dict]
 def fetch_acsc_feeds() -> list[dict]:
     """Fetch ASD/ACSC RSS feeds directly from cyber.gov.au.
 
-    cyber.gov.au frequently does not respond to cloud/datacenter IPs. If the
-    first feed fails we assume the site is unreachable from this host and skip
-    the rest rather than waiting on every timeout.
+    If the first feed fails we assume the site is unreachable from this host
+    and skip the rest rather than waiting on every timeout.
     """
     logger.info("Fetching ASD/ACSC feeds...")
     all_entries = []
     for source, key in ACSC_FEEDS:
-        entries = _fetch_feed(SOURCES[key], source, 50, timeout=20, retries=1)
+        entries = _fetch_feed(SOURCES[key], source, 50, headers=ACSC_HEADERS, timeout=20, retries=1)
         if not entries and not all_entries:
             logger.warning("  cyber.gov.au unreachable from this host; ACSC feeds skipped this build")
             break
